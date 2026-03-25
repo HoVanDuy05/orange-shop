@@ -123,7 +123,7 @@ export const UserShell = ({ children }: { children: React.ReactNode }) => {
         <Container size="lg" h="100%">
           <Group justify="space-between" h="100%" wrap="nowrap" px="xs">
             <UnstyledButton onClick={() => navigate('/')} className="flex items-center gap-2">
-              <Image src="/logo-iuh-1.png" h={30} w="auto" />
+              <Image src="/logo-iuh.png" h={30} w="auto" />
               <Box>
                 <Text fw={900} size="xs" c="blue.8" tt="uppercase" className="leading-tight">Food Court</Text>
                 <Text size="8px" fw={700} c="dimmed" tt="uppercase">IUH University</Text>
@@ -358,7 +358,7 @@ export const UserShell = ({ children }: { children: React.ReactNode }) => {
         <Stack gap={0}>
           {/* Blue header */}
           <Box style={{ background: '#2563eb', padding: '24px 24px 20px', borderRadius: '12px 12px 0 0', textAlign: 'center' }}>
-            <Image src="/logo-iuh-1.png" h={36} w="auto" mx="auto" mb={12} style={{ filter: 'brightness(0) invert(1)' }} />
+            <Image src="/logo-iuh.png" h={36} w="auto" mx="auto" mb={12} style={{ filter: 'brightness(0) invert(1)' }} />
             <Title order={3} fw={900} style={{ color: 'white' }}>Xin chào! 👋</Title>
             <Text size="xs" style={{ color: 'rgba(255,255,255,0.75)' }} mt={4}>Chào mừng đến với Food Court IUH</Text>
           </Box>
