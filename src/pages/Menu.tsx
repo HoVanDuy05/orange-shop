@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Container,
   SimpleGrid,
   Card,
   Badge,
   Text,
-  Group,
   Tabs,
   Title,
   Loader,
@@ -25,7 +24,7 @@ export default function Menu() {
   const [search, setSearch] = useState('');
   const { addToCart } = useUserStore();
 
-  const { data: categories = [], isLoading: loadingCats } = useAppQuery('categories', '/categories');
+  const { data: categories = [] } = useAppQuery('categories', '/categories');
   const { data: products = [], isLoading: loadingProds } = useAppQuery('products', '/products', {
     categoryId: activeCategory === 'all' ? undefined : (activeCategory || undefined),
     search: search || undefined

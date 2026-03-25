@@ -3,7 +3,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../api/supabaseClient';
 import { notifications } from '@mantine/notifications';
 import { useUserStore } from '../store/userStore';
-import React from 'react';
 import { IconBellRinging, IconChefHat, IconTruck, IconCircleCheck } from '@tabler/icons-react';
 
 const STATUS_TEXT: Record<string, string> = {

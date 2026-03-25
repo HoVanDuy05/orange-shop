@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Container,
   Text,
@@ -14,7 +13,6 @@ import {
   Loader,
 } from '@mantine/core';
 import {
-  IconCheck,
   IconHistory,
   IconClock,
   IconCircleCheck,
