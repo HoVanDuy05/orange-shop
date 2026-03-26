@@ -48,6 +48,23 @@ export const useUserRealtime = () => {
           if (newStatus !== oldStatus) {
             const message = STATUS_TEXT[newStatus];
             if (message) {
+                // TTS Speak
+                if ('speechSynthesis' in window) {
+                  window.speechSynthesis.cancel();
+                  const utterance = new SpeechSynthesisUtterance(message);
+                  const setVoice = () => {
+                    const voices = window.speechSynthesis.getVoices();
+                    const viVoice = voices.find(v => v.lang.toLowerCase().includes('vi')) || 
+                                  voices.find(v => v.name.toLowerCase().includes('vietnamese'));
+                    if (viVoice) utterance.voice = viVoice;
+                    utterance.lang = 'vi-VN';
+                    utterance.rate = 0.9;
+                    window.speechSynthesis.speak(utterance);
+                  };
+                  if (window.speechSynthesis.getVoices().length > 0) setVoice();
+                  else window.speechSynthesis.onvoiceschanged = setVoice;
+                }
+
                 const Icon = STATUS_ICON[newStatus] || IconBellRinging;
                 notifications.show({
                     title: '🔔 Cập nhật đơn hàng',

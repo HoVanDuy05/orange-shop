@@ -60,6 +60,39 @@ export const UserShell = ({ children }: { children: React.ReactNode }) => {
       notifications.show({ title: 'Cần cung cấp tên', message: 'Vui lòng nhập tên bạn để nhà bếp tiện phục vụ nè.', color: 'orange' });
       return;
     }
+    const speak = (text: string) => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        const trySpeak = () => {
+          const voices = window.speechSynthesis.getVoices();
+          // Lọc tìm giọng đọc Tiếng Việt chuẩn nhất (ưu tiên Google/Microsoft)
+          let viVoice = voices.find(v => v.lang.includes('vi-VN') && (v.name.includes('Google') || v.name.includes('Microsoft'))) ||
+                        voices.find(v => v.lang.includes('vi-VN')) ||
+                        voices.find(v => v.lang.toLowerCase().startsWith('vi'));
+          
+          if (viVoice) {
+            utterance.voice = viVoice;
+            console.log('✅ AI Voice Selected:', viVoice.name);
+          } else {
+            console.warn('❌ Không tìm thấy giọng đọc Tiếng Việt chuẩn hệ thống.');
+          }
+
+          utterance.lang = 'vi-VN';
+          utterance.rate = 0.9; // Tốc độ tự nhiên
+          utterance.pitch = 1.0;
+          window.speechSynthesis.speak(utterance);
+        };
+
+        if (window.speechSynthesis.getVoices().length > 0) {
+          trySpeak();
+        } else {
+          window.speechSynthesis.onvoiceschanged = trySpeak;
+        }
+      }
+    };
+
     try {
       const res = await mutation.mutateAsync({
         dining_table_id: tableId ? Number(tableId) : null,
@@ -77,8 +110,10 @@ export const UserShell = ({ children }: { children: React.ReactNode }) => {
         localStorage.setItem('token', res.data?.token || res.token);
       }
       notifications.show({ title: 'Đặt món thành công!', message: 'Đơn hàng đã được gửi tới bếp.', color: 'green' });
+      speak('Đặt món thành công! Chúc bạn ngon miệng.');
       clearCart();
-      close();
+      closeConfirm(); // Close confirm modal after success
+      close(); // Close cart drawer
       navigate('/orders');
     } catch (error: any) {
       notifications.show({ title: 'Lỗi', message: error.response?.data?.message || 'Có lỗi khi đặt hàng', color: 'red' });
@@ -336,7 +371,7 @@ export const UserShell = ({ children }: { children: React.ReactNode }) => {
             <Button
               flex={2} radius="md" color="blue.7" size="md" fw={900}
               loading={mutation.isPending}
-              onClick={() => { closeConfirm(); handleCheckout(); }}
+              onClick={() => { handleCheckout(); }}
             >
               Xác nhận đặt món
             </Button>
