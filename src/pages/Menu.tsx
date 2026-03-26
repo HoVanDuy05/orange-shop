@@ -59,21 +59,27 @@ export default function Menu() {
             </Box>
 
             <TextInput
-              placeholder="Tìm món ngon..."
+              placeholder="Bạn muốn ăn món gì hôm nay?"
               radius="xl"
               size="md"
               value={search}
               onChange={(e) => setSearch(e.currentTarget.value)}
-              leftSection={<IconSearch size={16} color="#94a3b8" />}
+              leftSection={<IconSearch size={18} color="#2563eb" stroke={2.5} />}
               styles={{
                 input: {
-                  backgroundColor: '#f1f5f9',
-                  border: '1.5px solid #e2e8f0',
-                  fontWeight: 600,
-                  fontSize: '14px',
+                  backgroundColor: '#f8fafc',
+                  border: '2px solid #e2e8f0',
+                  fontWeight: 700,
+                  fontSize: '15px',
                   borderRadius: 999,
+                  transition: 'all 0.2s',
+                  '&:focus': {
+                    borderColor: '#2563eb',
+                    backgroundColor: 'white',
+                    boxShadow: '0 8px 16px rgba(37,99,235,0.08)'
+                  }
                 },
-                wrapper: { width: '100%' }
+                wrapper: { width: '100%', maxWidth: '500px', margin: '0 auto' }
               }}
             />
           </Stack>

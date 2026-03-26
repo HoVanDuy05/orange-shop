@@ -36,6 +36,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import { useAppMutation } from '../../hooks/useAppMutation';
 import { useUserRealtime } from '../../hooks/useUserRealtime';
+import { GlobalLoader } from './GlobalLoader';
 
 export const UserShell = ({ children }: { children: React.ReactNode }) => {
   useUserRealtime();
@@ -119,6 +120,7 @@ export const UserShell = ({ children }: { children: React.ReactNode }) => {
       header={{ height: 60 }}
       padding="0"
     >
+      <GlobalLoader />
       <AppShell.Header className="bg-white border-b border-slate-100 z-[1001]">
         <Container size="lg" h="100%">
           <Group justify="space-between" h="100%" wrap="nowrap" px="xs">

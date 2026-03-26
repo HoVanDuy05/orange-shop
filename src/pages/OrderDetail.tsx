@@ -11,6 +11,7 @@ import {
   Box,
   Badge,
   Loader,
+  Image,
 } from '@mantine/core';
 import {
   IconHistory,
@@ -154,17 +155,24 @@ export default function OrderDetail() {
               <Text fw={900} size="xs" c="slate.5" tt="uppercase" lts="2px" mb={4}>CHI TIẾT MÓN ĂN</Text>
               <Stack gap="xs">
                 {order.items?.map((item: any, idx: number) => (
-                  <Group key={idx} justify="space-between" wrap="nowrap" className="bg-slate-50/80 px-4 py-3 rounded-2xl border border-slate-50">
+                  <Group key={idx} justify="space-between" wrap="nowrap" className="bg-white px-4 py-3 rounded-2xl border border-slate-100 shadow-sm">
                     <Group gap="sm" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-                      <ThemeIcon color="blue" variant="light" radius="md" size="md" style={{ flexShrink: 0 }}>
-                        <IconPackage size={16} />
-                      </ThemeIcon>
+                      {item.image_url ? (
+                        <Image src={item.image_url} w={48} h={48} radius="lg" style={{ objectFit: 'cover', flexShrink: 0 }} alt="" />
+                      ) : (
+                        <ThemeIcon color="blue" variant="light" radius="md" size="xl" style={{ flexShrink: 0 }}>
+                          <IconPackage size={20} />
+                        </ThemeIcon>
+                      )}
                       <Stack gap={0} style={{ minWidth: 0 }}>
-                        <Text fw={800} size="xs" truncate>{item.product_name || `Món #${item.product_id}`}</Text>
-                        <Text size="xs" c="dimmed" fw={700}>x{item.quantity}</Text>
+                        <Text fw={900} size="sm" c="slate.8" truncate>{item.product_name || `Món #${item.product_id}`}</Text>
+                        <Group gap={6}>
+                          <Text size="xs" c="dimmed" fw={700}>x{item.quantity}</Text>
+                          <Text size="xs" c="blue.6" fw={800}>{(Number(item.unit_price)).toLocaleString()}đ</Text>
+                        </Group>
                       </Stack>
                     </Group>
-                    <Text fw={900} size="sm" c="blue.8" style={{ flexShrink: 0 }}>{(item.unit_price * item.quantity).toLocaleString()}đ</Text>
+                    <Text fw={1000} size="md" c="slate.9" style={{ flexShrink: 0 }}>{(item.unit_price * item.quantity).toLocaleString()}đ</Text>
                   </Group>
                 ))}
               </Stack>

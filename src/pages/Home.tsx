@@ -10,7 +10,8 @@ import {
   Box,
   Paper,
   ThemeIcon,
-  Image,
+  ActionIcon,
+  Card,
 } from '@mantine/core';
 import {
   IconChevronRight,
@@ -18,184 +19,220 @@ import {
   IconTruck,
   IconShieldCheck,
   IconTrendingUp,
-  IconClock
+  IconClock,
+  IconPlus,
+  IconThumbUp
 } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
+import { useAppQuery } from '../hooks/useAppQuery';
+import { useUserStore } from '../store/userStore';
+import { notifications } from '@mantine/notifications';
+
+const VND = (n: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
 
 export default function Home() {
   const navigate = useNavigate();
+  const { addToCart } = useUserStore();
+
+  const { data: products = [], isLoading: loadingProds } = useAppQuery('products', '/products');
+
+  // Filter top 5 products by sales_count
+  const bestSellers = [...products]
+    .sort((a: any, b: any) => (b.sales_count || 0) - (a.sales_count || 0))
+    .slice(0, 5);
+
+  const handleAddToCart = (product: any) => {
+    addToCart({
+      id: product.id,
+      product_name: product.product_name,
+      price: Number(product.price),
+      quantity: 1,
+      image_url: product.image_url
+    });
+    notifications.show({
+      title: 'Đã thêm món! 😋',
+      message: `Đã đưa "${product.product_name}" vào giỏ hàng.`,
+      color: 'blue.7',
+      variant: 'light',
+    });
+  };
 
   return (
-    <Box>
-      {/* MODERN HERO SECTION */}
-      <Box className="relative overflow-hidden bg-white pt-10 sm:pt-12 md:pt-10 pb-20 sm:pb-24 md:pb-20">
-        <Box
-          className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-50/50 rounded-full blur-[100px] -mr-[200px] -mt-[200px]"
-        />
-        <Box
-          className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-50/50 rounded-full blur-[100px] -ml-[100px] -mb-[100px]"
-        />
-
-        <Container size="lg" className="relative z-10 px-4 sm:px-6">
-          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xl" verticalSpacing="lg">
-            <Stack gap="xl">
-              <Box>
-                <Badge
-                  variant="gradient"
-                  gradient={{ from: 'blue.7', to: 'indigo.7' }}
-                  className="text-sm sm:text-base md:text-lg px-4 sm:px-6 md:px-8 py-2 sm:py-3 h-8 sm:h-10 md:h-10 fw-900 shadow-lg shadow-blue-500/20"
-                >
-                  IUH FOOD COURT 2024
-                </Badge>
-              </Box>
-
-              <Title order={1} className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl fw-900 tracking-tighter text-slate-900 leading-[1.05]">
-                Thực phẩm <br />
-                <Text component="span" variant="gradient" gradient={{ from: 'blue.7', to: 'indigo.8' }} inherit className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
-                  sạch cho sinh viên
-                </Text>
+    <Box bg="white">
+      {/* BEST SELLERS SECTION - REFINED TITLE & ICON */}
+      <Container size="lg" py={20} px="sm">
+        <Group justify="space-between" mb="lg">
+          <Stack gap={2}>
+            <Group gap="xs">
+              <ThemeIcon variant="light" color="blue" radius="md" size="md">
+                <IconThumbUp size={18} stroke={2.5} />
+              </ThemeIcon>
+              <Title order={2} size="18px" fw={900} className="tracking-tight text-slate-800 uppercase">
+                Các món bạn có thể thích
               </Title>
+            </Group>
+            <Text c="dimmed" size="xs" fw={500}>Nổi bật tuần qua tại Food Court</Text>
+          </Stack>
+          <Button
+            variant="subtle"
+            color="blue"
+            size="sm"
+            radius="xl"
+            rightSection={<IconChevronRight size={14} />}
+            onClick={() => navigate('/menu')}
+            fw={700}
+          >
+            Tất cả
+          </Button>
+        </Group>
 
-              <Text className="text-base sm:text-lg md:text-xl text-slate-600 fw-600 max-w-md leading-relaxed">
-                Hệ thống đặt món trực tuyến thông minh giúp sinh viên IUH tiết kiệm thời gian và đảm bảo sức khỏe mỗi ngày.
-              </Text>
-
-              <Group gap="xl" mt="md">
-                <Button
-                  className="text-base sm:text-lg md:text-xl font-black shadow-2xl shadow-blue-500/30 transition-standard hover:-translate-y-1 active:scale-95 h-14 sm:h-16 md:h-16 px-6 sm:px-8 md:px-10"
-                  variant="filled"
-                  color="blue.7"
-                  radius="xl"
-                  onClick={() => navigate('/menu')}
-                  rightSection={<IconChevronRight size={22} />}
-                >
-                  Đặt món ngay
-                </Button>
-
-                {/* Removed student stats group */}
-              </Group>
-            </Stack>
-
-            <Box className="relative">
-              <Box className="absolute inset-0 bg-blue-600 rounded-full blur-[80px] opacity-20 transform scale-90 translate-y-10" />
-              <Paper
-                radius="xl"
-                className="overflow-hidden shadow-premium-xl border-4 sm:border-8 md:border-[12px] border-white relative z-10 aspect-[4/5] max-w-xs sm:max-w-sm md:max-w-md mx-auto"
+        {loadingProds ? (
+          <SimpleGrid cols={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing="sm">
+            {[1, 2, 3, 4, 5].map(i => <Paper key={i} h={180} className="bg-slate-50 animate-pulse rounded-2xl" />)}
+          </SimpleGrid>
+        ) : (
+          <SimpleGrid cols={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing="sm" style={{ alignItems: 'stretch' }}>
+            {bestSellers.map((product: any) => (
+              <Card
+                key={product.id}
+                padding={0}
+                radius="lg"
+                withBorder
+                style={{ borderColor: '#e2e8f0', overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}
+                className="hover:shadow-lg transition-all duration-300"
               >
-                <Image
-                  src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=1000"
-                  alt="Healthy Food"
-                  className="w-full h-full object-cover"
-                />
-                <Box className="absolute bottom-3 sm:bottom-4 md:bottom-6 left-3 sm:left-4 md:left-6 right-3 sm:right-4 md:right-6">
-                  <Paper p="md" radius="lg" className="glass shadow-2xl">
-                    <Group justify="space-between">
-                      <Box>
-                        <Text fw={800} size="sm" c="blue.8">Salad Ức Gà</Text>
-                        <Text c="dimmed" size="xs" fw={700}>Best Seller tháng này</Text>
-                      </Box>
-                      <Badge color="green" variant="light" size="md" radius="md">35.000đ</Badge>
-                    </Group>
-                  </Paper>
+                {/* Image Section */}
+                <Box style={{ position: 'relative', width: '100%', paddingBottom: '100%', overflow: 'hidden', backgroundColor: '#f1f5f9' }}>
+                  <img
+                    src={product.image_url || 'https://via.placeholder.com/300?text=Food'}
+                    alt={product.product_name}
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  <ActionIcon
+                    variant="filled"
+                    color="blue.7"
+                    radius="xl"
+                    size={28}
+                    onClick={() => handleAddToCart(product)}
+                    style={{ position: 'absolute', top: 8, right: 8, boxShadow: '0 2px 8px rgba(37,99,235,0.4)', zIndex: 10 }}
+                  >
+                    <IconPlus size={14} stroke={3} />
+                  </ActionIcon>
                 </Box>
+
+                <Stack gap={3} p={10} style={{ flex: 1 }}>
+                  <Text fw={700} size="13px" lineClamp={2} style={{ lineHeight: 1.3, color: '#1e293b' }}>
+                    {product.product_name}
+                  </Text>
+                  <Text size="10px" c="dimmed" lineClamp={1} fw={500}>
+                    {product.description || 'Hương vị tuyệt hảo'}
+                  </Text>
+                  <Group justify="space-between" align="center" mt="auto">
+                    <Text fw={900} size="sm" c="blue.7">
+                      {VND(Number(product.price))}
+                    </Text>
+                    <Text size="10px" fw={600} c="dimmed">{product.sales_count || 0} đã bán</Text>
+                  </Group>
+                </Stack>
+              </Card>
+            ))}
+          </SimpleGrid>
+        )}
+      </Container>
+
+
+      {/* STATS SECTION */}
+      <Box py={60} className="bg-slate-50/50 border-t border-b border-slate-100">
+        <Container size="lg">
+          <SimpleGrid cols={{ base: 2, md: 4 }} spacing={20}>
+            {[
+              { icon: IconTrendingUp, label: 'Đơn hàng', val: '12k+', color: 'blue' },
+              { icon: IconClock, label: 'Phục vụ', val: '5min', color: 'orange' },
+              { icon: IconStar, label: 'Đánh giá', val: '4.9/5', color: 'yellow' },
+              { icon: IconTruck, label: 'Đối tác', val: '20+', color: 'green' },
+            ].map((stat, i) => (
+              <Paper key={i} p="lg" radius="xl" withBorder className="text-center bg-white shadow-sm border-slate-200/60">
+                <ThemeIcon size={40} radius="xl" color={stat.color} variant="light" mb="sm" className="mx-auto">
+                  <stat.icon size={20} />
+                </ThemeIcon>
+                <Title order={3} fw={900} size={20}>{stat.val}</Title>
+                <Text c="dimmed" size="10px" fw={700} tt="uppercase" lts="0.5px" mt={2}>{stat.label}</Text>
               </Paper>
-            </Box>
+            ))}
           </SimpleGrid>
         </Container>
       </Box>
 
-      {/* STATS SECTION */}
-      <Container size="lg" py={60}>
-        <SimpleGrid cols={{ base: 2, md: 4 }} spacing={30}>
-          {[
-            { icon: IconTrendingUp, label: 'Đơn hàng', val: '12k+', color: 'blue' },
-            { icon: IconClock, label: 'Phục vụ', val: '5min', color: 'orange' },
-            { icon: IconStar, label: 'Đánh giá', val: '4.9/5', color: 'yellow' },
-            { icon: IconTruck, label: 'Đối tác', val: '20+', color: 'green' },
-          ].map((stat, i) => (
-            <Paper key={i} p="xl" radius="25px" withBorder className="text-center group hover:border-blue-200 transition-standard">
-              <ThemeIcon size={50} radius="xl" color={stat.color} variant="light" mb="md" className="mx-auto group-hover:scale-110 transition-standard">
-                <stat.icon size={26} />
-              </ThemeIcon>
-              <Title order={3} fw={900} size={24}>{stat.val}</Title>
-              <Text c="dimmed" size="xs" fw={700} tt="uppercase" lts="1px" mt={4}>{stat.label}</Text>
-            </Paper>
-          ))}
-        </SimpleGrid>
+      {/* FEATURES SECTION */}
+      <Container size="lg" py={80}>
+        <Stack gap={40}>
+          <Box className="text-center max-w-xl mx-auto">
+            <Badge variant="light" color="blue" size="md" radius="md" mb="xs">TỔNG QUAN DỊCH VỤ</Badge>
+            <Title order={2} size={28} fw={900} className="tracking-tight text-slate-800">Tại sao nên chọn IUH Food Court?</Title>
+          </Box>
+
+          <SimpleGrid cols={{ base: 1, sm: 3 }} spacing={20}>
+            {[
+              {
+                icon: IconTruck,
+                title: 'Phục vụ nhanh',
+                desc: 'Món ăn được chuẩn bị và phục vụ ngay sau khi bạn đặt đơn.',
+                color: 'blue'
+              },
+              {
+                icon: IconShieldCheck,
+                title: 'An toàn vệ sinh',
+                desc: 'Nguyên liệu được kiểm duyệt 100%, đảm bảo an toàn thực phẩm.',
+                color: 'green'
+              },
+              {
+                icon: IconStar,
+                title: 'Giá cả ưu đãi',
+                desc: 'Mức giá dành riêng cho sinh viên với nhiều combo tiết kiệm.',
+                color: 'orange'
+              },
+            ].map((feat, i) => (
+              <Paper key={i} p="xl" radius="24px" withBorder className="border-slate-100 hover:shadow-xl transition-all duration-300 bg-white">
+                <ThemeIcon size={50} radius="14px" color={feat.color} variant="light" mb="lg">
+                  <feat.icon size={24} />
+                </ThemeIcon>
+                <Title order={3} fw={800} size={18} mb="xs">{feat.title}</Title>
+                <Text size="sm" c="slate.6" fw={500} className="leading-relaxed">{feat.desc}</Text>
+              </Paper>
+            ))}
+          </SimpleGrid>
+        </Stack>
       </Container>
 
-      {/* FEATURES SECTION */}
-      <Box bg="slate.0" py={100}>
-        <Container size="lg">
-          <Stack gap={60}>
-            <Box className="text-center max-w-2xl mx-auto">
-              <Badge variant="light" color="blue" size="xl" radius="md" mb="md">TỔNG QUAN DỊCH VỤ</Badge>
-              <Title order={2} size={36} fw={900} className="tracking-tight leading-tight">Tại sao nên chọn IUH Food Court?</Title>
-            </Box>
-
-            <SimpleGrid cols={{ base: 1, sm: 3 }} spacing={40}>
-              {[
-                {
-                  icon: IconTruck,
-                  title: 'Phục vụ nhanh',
-                  desc: 'Món ăn được chuẩn bị và phục vụ ngay sau khi bạn đặt đơn qua hệ thống.',
-                  color: 'blue'
-                },
-                {
-                  icon: IconShieldCheck,
-                  title: 'An toàn vệ sinh',
-                  desc: 'Nguyên liệu được kiểm duyệt 100% từ nhà cung cấp uy tín, đảm bảo an toàn thực phẩm.',
-                  color: 'green'
-                },
-                {
-                  icon: IconStar,
-                  title: 'Giá cả ưu đãi',
-                  desc: 'Mức giá dành riêng cho sinh viên với nhiều combo tiết kiệm và thẻ tích điểm.',
-                  color: 'orange'
-                },
-              ].map((feat, i) => (
-                <Paper key={i} p={40} radius="30px" withBorder className="border-slate-100 hover:shadow-2xl transition-standard group bg-white">
-                  <ThemeIcon size={64} radius="20px" color={feat.color} variant="light" mb="xl">
-                    <feat.icon size={32} />
-                  </ThemeIcon>
-                  <Title order={3} fw={900} size={22} mb="md">{feat.title}</Title>
-                  <Text size="md" c="slate.6" fw={500} className="leading-relaxed">{feat.desc}</Text>
-                </Paper>
-              ))}
-            </SimpleGrid>
-          </Stack>
-        </Container>
-      </Box>
-
-      {/* PREMIUM CTA SECTION */}
-      <Container size="lg" pt={100} pb={140}>
+      {/* PREMIUM CTA SECTION - REFINED */}
+      <Container size="lg" pb={80}>
         <Paper
-          radius={40}
-          p={60}
-          className="relative overflow-hidden shadow-2xl shadow-blue-500/20 bg-[#00458e] border border-blue-400/20"
+          radius={32}
+          p={{ base: 40, md: 60 }}
+          className="relative overflow-hidden shadow-2xl bg-[#0051a8] border border-blue-400/20"
         >
-          <Box className="absolute top-0 right-0 w-[400px] h-[400px] bg-blue-400/20 rounded-full blur-[100px] -mr-40 -mt-20" />
-          <Box className="absolute bottom-0 left-0 w-40 h-40 bg-indigo-500/20 rounded-full blur-[50px] -ml-20 -mb-20" />
+          <Box className="absolute top-0 right-0 w-[300px] h-[300px] bg-blue-400/30 rounded-full blur-[80px] -mr-32 -mt-16" />
+          <Box className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/30 rounded-full blur-[40px] -ml-16 -mb-16" />
 
-          <Stack align="center" gap={40} className="relative z-10 text-center">
+          <Stack align="center" gap={30} className="relative z-10 text-center">
             <Box>
-              <Title order={2} size={42} fw={900} c="white" className="tracking-tight leading-tight">
-                Tải nghiệm đặt món <br />
-                <Text component="span" c="blue.1" inherit>thế hệ mới</Text> ngay?
+              <Title order={2} size={32} fw={900} c="white" className="tracking-tight leading-tight">
+                Trải nghiệm đặt món <br />
+                <Text component="span" c="blue.1" inherit className="font-black text-blue-100/90">thế hệ mới</Text> ngay?
               </Title>
-              <Text size="xl" c="blue.0" opacity={0.8} fw={600} mt="lg" className="max-w-xl mx-auto">
+              <Text size="md" c="blue.0" opacity={0.9} fw={600} mt="md" className="max-w-md mx-auto leading-relaxed">
                 Tham gia cùng 5,000+ sinh viên đang tận hưởng dịch vụ tiện lợi nhất tại trường đại học của chúng ta.
               </Text>
             </Box>
             <Button
-              size="xl"
+              size="lg"
               radius="xl"
-              h={75}
-              px={60}
+              h={56}
+              px={40}
               variant="white"
               color="blue.8"
               fw={900}
-              className="shadow-2xl shadow-black/20 text-lg md:text-xl font-black hover:-translate-y-1 transition-standard hover:scale-105"
+              className="shadow-xl text-md font-black hover:-translate-y-1 transition-all active:scale-95"
               onClick={() => navigate('/menu')}
             >
               BẮT ĐẦU NGAY!
