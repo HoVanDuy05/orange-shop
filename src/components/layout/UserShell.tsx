@@ -61,36 +61,22 @@ export const UserShell = ({ children }: { children: React.ReactNode }) => {
       return;
     }
     const speak = (text: string) => {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        
-        const trySpeak = () => {
-          const voices = window.speechSynthesis.getVoices();
-          // Lọc tìm giọng đọc Tiếng Việt chuẩn nhất (ưu tiên Google/Microsoft)
-          let viVoice = voices.find(v => v.lang.includes('vi-VN') && (v.name.includes('Google') || v.name.includes('Microsoft'))) ||
-                        voices.find(v => v.lang.includes('vi-VN')) ||
-                        voices.find(v => v.lang.toLowerCase().startsWith('vi'));
-          
-          if (viVoice) {
-            utterance.voice = viVoice;
-            console.log('✅ AI Voice Selected:', viVoice.name);
-          } else {
-            console.warn('❌ Không tìm thấy giọng đọc Tiếng Việt chuẩn hệ thống.');
+      const googleTtsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=vi&client=tw-ob`;
+      const audio = new Audio(googleTtsUrl);
+      audio.play()
+        .then(() => console.log('🗣️ Đã phát thông báo giọng đọc Google'))
+        .catch(() => {
+          if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            const voices = window.speechSynthesis.getVoices();
+            const viVoice = voices.find(v => v.lang.includes('vi-VN')) || voices.find(v => v.lang.toLowerCase().startsWith('vi'));
+            if (viVoice) utterance.voice = viVoice;
+            utterance.lang = 'vi-VN';
+            utterance.rate = 1.0;
+            window.speechSynthesis.speak(utterance);
           }
-
-          utterance.lang = 'vi-VN';
-          utterance.rate = 0.9; // Tốc độ tự nhiên
-          utterance.pitch = 1.0;
-          window.speechSynthesis.speak(utterance);
-        };
-
-        if (window.speechSynthesis.getVoices().length > 0) {
-          trySpeak();
-        } else {
-          window.speechSynthesis.onvoiceschanged = trySpeak;
-        }
-      }
+        });
     };
 
     try {

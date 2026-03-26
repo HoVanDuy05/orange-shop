@@ -17,7 +17,7 @@ import {
   IconHistory,
   IconClock,
   IconCircleCheck,
-  IconChefHat,
+
   IconPackage,
   IconCash,
   IconCircleX,
@@ -28,15 +28,14 @@ import { useAppQuery } from '../hooks/useAppQuery';
 import dayjs from 'dayjs';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
-  pending: { label: 'Chờ xác nhận', color: 'orange', icon: IconClock },
+  pending: { label: 'Chờ thanh toán', color: 'orange', icon: IconClock },
   confirmed: { label: 'Đã nhận đơn', color: 'blue', icon: IconCircleCheck },
-  preparing: { label: 'Đang chế biến', color: 'violet', icon: IconChefHat },
-  done: { label: 'Hoàn tất món', color: 'green', icon: IconPackage },
   paid: { label: 'Đã thanh toán', color: 'teal', icon: IconCash },
+  done: { label: 'Hoàn thành', color: 'green', icon: IconPackage },
   cancelled: { label: 'Đã huỷ', color: 'red', icon: IconCircleX },
 };
 
-const STATUS_FLOW = ['pending', 'confirmed', 'preparing', 'done', 'paid'];
+const STATUS_FLOW = ['pending', 'confirmed', 'paid', 'done'];
 
 export default function OrderDetail() {
   const { id } = useParams();

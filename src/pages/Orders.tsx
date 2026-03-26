@@ -25,18 +25,16 @@ import dayjs from 'dayjs';
 const STATUS_COLOR: Record<string, string> = {
   pending: 'orange',
   confirmed: 'blue',
-  preparing: 'violet',
-  done: 'green',
   paid: 'teal',
+  done: 'green',
   cancelled: 'red',
 };
 
 const STATUS_LABEL: Record<string, string> = {
-  pending: 'Đang chờ',
-  confirmed: 'Đã nhận',
-  preparing: 'Đang nấu',
-  done: 'Đã ra món',
-  paid: 'Đã trả tiền',
+  pending: 'Chờ thanh toán',
+  confirmed: 'Đã tiếp nhận',
+  paid: 'Đã thanh toán',
+  done: 'Hoàn thành',
   cancelled: 'Đã huỷ',
 };
 
