@@ -4,6 +4,7 @@ import { supabase } from '../api/supabaseClient';
 import { notifications } from '@mantine/notifications';
 import { useUserStore } from '../store/userStore';
 import { IconBellRinging, IconTruck, IconCircleCheck } from '@tabler/icons-react';
+import { usePushSubscription } from './usePushSubscription';
 
 const STATUS_TEXT: Record<string, string> = {
   pending: 'Đơn hàng đang chờ thanh toán.',
@@ -23,6 +24,9 @@ const STATUS_ICON: Record<string, any> = {
 export const useUserRealtime = () => {
   const queryClient = useQueryClient();
   const { phoneNumber } = useUserStore();
+  
+  // Kích hoạt nhận Web Push Notification ngay khi có SĐT
+  usePushSubscription(phoneNumber);
 
   useEffect(() => {
     if (!phoneNumber) return;
