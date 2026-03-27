@@ -51,6 +51,13 @@ export const useUserRealtime = () => {
       play();
     };
 
+    const playConfirmedSound = () => {
+      try {
+        const audio = new Audio('/xac-nhan-don-hang.mp3');
+        audio.play().catch(() => { });
+      } catch (e) { }
+    };
+
     const playBell = () => {
       try {
         const audio = new Audio('https://raw.githubusercontent.com/shixuewen/ding-sound/master/ding.mp3');
@@ -87,6 +94,8 @@ export const useUserRealtime = () => {
                 playDoneSound();
               } else if (newStatus === 'cancelled') {
                 playBell();
+              } else if (newStatus === 'confirmed') {
+                playConfirmedSound();
               }
 
               const Icon = STATUS_ICON[newStatus] || IconBellRinging;
