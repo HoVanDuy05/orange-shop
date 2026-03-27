@@ -98,7 +98,11 @@ export const useUserRealtime = () => {
                 autoClose: 10000,
               });
             }
+            
+            // 🔄 Xóa bộ đệm và tải lại danh sách đơn hàng
             queryClient.invalidateQueries({ queryKey: [`orders-${phoneNumber}`] });
+            // 🔄 TẢI LẠI TRANG CHI TIẾT ĐƠN HÀNG (QUAN TRỌNG)
+            queryClient.invalidateQueries({ queryKey: [`order-${payload.new.id}`] });
           }
         }
       )

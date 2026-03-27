@@ -49,6 +49,7 @@ export const UserShell = ({ children }: { children: React.ReactNode }) => {
   const [loginOpened, { close: closeLogin }] = useDisclosure(!customerName || !phoneNumber);
   const [tempName, setTempName] = React.useState(customerName);
   const [tempPhone, setTempPhone] = React.useState(phoneNumber);
+  const [orderNote, setOrderNote] = React.useState('');
 
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -85,6 +86,7 @@ export const UserShell = ({ children }: { children: React.ReactNode }) => {
         customer_name: customerName,
         customer_phone: phoneNumber,
         payment_method: 'unpaid',
+        note: orderNote,
         items: cart.map(i => ({
           product_id: i.id,
           quantity: i.quantity,
@@ -98,6 +100,7 @@ export const UserShell = ({ children }: { children: React.ReactNode }) => {
       notifications.show({ title: 'Đặt món thành công!', message: 'Đơn hàng đã được gửi tới bếp.', color: 'green' });
       speak('Đặt món thành công! Chúc bạn ngon miệng.');
       clearCart();
+      setOrderNote(''); // Reset ghi chú sau khi đặt xong
       closeConfirm(); // Close confirm modal after success
       close(); // Close cart drawer
       navigate('/orders');
@@ -346,6 +349,17 @@ export const UserShell = ({ children }: { children: React.ReactNode }) => {
               <Text fw={600} c="dimmed" size="sm">Khách hàng</Text>
               <Text fw={700} size="sm">{customerName}</Text>
             </Group>
+            
+            <TextInput
+              placeholder="Ghi chú (không cay, nhiều đá,...)"
+              size="sm"
+              radius="md"
+              value={orderNote}
+              onChange={(e) => setOrderNote(e.target.value)}
+              mt="xs"
+              mb="xs"
+            />
+
             <Group justify="space-between">
               <Text fw={900} size="md">Tổng cộng</Text>
               <Text fw={900} size="lg" c="blue.7">{totalPrice.toLocaleString()}đ</Text>
