@@ -83,7 +83,7 @@ export default function OrderDetail() {
               <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
                 <Text size="xs" fw={800} c="dimmed" tt="uppercase" lts="1px">Mã đơn hàng</Text>
                 <Title order={2} fw={1000} size="h3" c="blue" className="leading-tight truncate">
-                  #{order.id}
+                  IUH-{dayjs(order.created_at).format('DDMMYYYY')}-{order.id}
                 </Title>
               </Stack>
               <Stack gap={4} align="flex-end" style={{ flexShrink: 0 }}>

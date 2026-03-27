@@ -125,7 +125,7 @@ export default function Orders() {
                       <Stack gap={2} style={{ minWidth: 0 }}>
                         <Group gap={8} wrap="nowrap">
                           <Text fw={900} size="lg" className="group-hover:text-blue-600 transition-colors leading-none">
-                            #{order.id}
+                            IUH-{dayjs(order.created_at).format('DDMMYYYY')}-{order.id}
                           </Text>
                           <Badge
                             color={STATUS_COLOR[order.order_status] || 'gray'}
