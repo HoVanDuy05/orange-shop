@@ -1,138 +1,113 @@
 import React from 'react';
 import {
-  AppShell,
-  UnstyledButton,
-  Text,
-  Container,
-  Indicator,
-  ActionIcon,
-  Box,
-  Drawer,
-  Stack,
-  Image,
-  Title,
-  ScrollArea,
-  Button,
-  TextInput,
-  Modal,
-  Paper,
-  Group,
+  AppShell, UnstyledButton, Text, Container, Indicator, ActionIcon,
+  Box, Drawer, Stack, Image, ScrollArea, Button,
+  Group, Center,
+  Skeleton
 } from '@mantine/core';
 import {
-  IconShoppingCart,
-  IconSmartHome,
-  IconToolsKitchen2,
-  IconHistory,
-  IconTrash,
-  IconPlus,
-  IconMinus,
-  IconX,
-  IconUser,
-  IconPhone
+  IconShoppingCart, IconSmartHome, IconToolsKitchen2, IconHistory,
+  IconTrash, IconPlus, IconMinus, IconX, IconChevronRight
 } from '@tabler/icons-react';
 import { useUserStore } from '../../store/userStore';
-import { useDisclosure } from '@mantine/hooks';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useCartProducts } from '../../hooks/useCartProducts';
 import { notifications } from '@mantine/notifications';
-import { useAppMutation } from '../../hooks/useAppMutation';
-import { useUserRealtime } from '../../hooks/useUserRealtime';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+import { useBrandTheme } from '../../providers/BrandThemeProvider';
+import { AppTitle } from '../common/AppTitle';
 import { GlobalLoader } from './GlobalLoader';
+import { useDisclosure } from '@mantine/hooks';
 
-export const UserShell = ({ children }: { children: React.ReactNode }) => {
-  useUserRealtime();
+export const UserShell = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { cart, tableId, removeFromCart, updateQuantity, clearCart, customerName, setCustomerName, phoneNumber, setPhoneNumber } = useUserStore();
+  const { activeTheme } = useBrandTheme();
+
+  const {
+    cart, removeFromCart, updateQuantity, phoneNumber
+  } = useUserStore();
+
+  const { cartWithDetails, isLoading } = useCartProducts();
 
   const [opened, { open, close }] = useDisclosure(false);
-  const [confirmOpened, { open: openConfirm, close: closeConfirm }] = useDisclosure(false);
-  const [loginOpened, { close: closeLogin }] = useDisclosure(!customerName || !phoneNumber);
-  const [tempName, setTempName] = React.useState(customerName);
-  const [tempPhone, setTempPhone] = React.useState(phoneNumber);
-  const [orderNote, setOrderNote] = React.useState('');
 
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalPrice = cartWithDetails.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
 
-  const mutation = useAppMutation('/orders');
+  const formatVND = (n: number) => new Intl.NumberFormat('vi-VN').format(n) + 'VNĐ';
 
-  const handleCheckout = async () => {
-    if (!customerName.trim()) {
-      notifications.show({ title: 'Cần cung cấp tên', message: 'Vui lòng nhập tên bạn để nhà bếp tiện phục vụ nè.', color: 'orange' });
+  const handleCheckoutClick = () => {
+    // Check if user is logged in
+    const storedPassword = localStorage.getItem('userPassword');
+    if (!phoneNumber.trim() || !storedPassword) {
+      notifications.show({
+        title: 'Yêu cầu đăng nhập',
+        message: 'Vui lòng đăng nhập để đặt hàng',
+        color: 'orange'
+      });
+      close();
+      navigate('/auth');
       return;
     }
-    const speak = (text: string) => {
-      const googleTtsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=vi&client=tw-ob`;
-      const audio = new Audio(googleTtsUrl);
-      audio.play()
-        .then(() => console.log('🗣️ Đã phát thông báo giọng đọc Google'))
-        .catch(() => {
-          if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            const voices = window.speechSynthesis.getVoices();
-            const viVoice = voices.find(v => v.lang.includes('vi-VN')) || voices.find(v => v.lang.toLowerCase().startsWith('vi'));
-            if (viVoice) utterance.voice = viVoice;
-            utterance.lang = 'vi-VN';
-            utterance.rate = 1.0;
-            window.speechSynthesis.speak(utterance);
-          }
-        });
-    };
+    close();
+    navigate('/checkout');
+  };
 
-    try {
-      const res = await mutation.mutateAsync({
-        dining_table_id: tableId ? Number(tableId) : null,
-        customer_name: customerName,
-        customer_phone: phoneNumber,
-        payment_method: 'unpaid',
-        note: orderNote,
-        items: cart.map(i => ({
-          product_id: i.id,
-          quantity: i.quantity,
-          unit_price: i.price
-        }))
-      });
-
-      if (res.data?.token || res.token) {
-        localStorage.setItem('token', res.data?.token || res.token);
-      }
-      notifications.show({ title: 'Đặt món thành công!', message: 'Đơn hàng đã được gửi tới bếp.', color: 'green' });
-      speak('Đặt món thành công! Chúc bạn ngon miệng.');
-      clearCart();
-      setOrderNote(''); // Reset ghi chú sau khi đặt xong
-      closeConfirm(); // Close confirm modal after success
-      close(); // Close cart drawer
-      navigate('/orders');
-    } catch (error: any) {
-      notifications.show({ title: 'Lỗi', message: error.response?.data?.message || 'Có lỗi khi đặt hàng', color: 'red' });
-    }
+  const handleCartClick = () => {
+    open();
   };
 
   const NavLink = ({ href, icon: Icon, label }: any) => {
     const active = location.pathname === href;
+
+    const handleClick = () => {
+      // Check if user is logged in for order-related pages
+      if (href === '/orders' || href.includes('/order-detail')) {
+        const storedPassword = localStorage.getItem('userPassword');
+        if (!phoneNumber.trim() || !storedPassword) {
+          notifications.show({
+            title: 'Yêu cầu đăng nhập',
+            message: 'Vui lòng đăng nhập để xem lịch sử đơn hàng',
+            color: 'orange'
+          });
+          navigate('/auth');
+          return;
+        }
+      }
+      navigate(href);
+    };
+
     return (
       <UnstyledButton
-        onClick={() => navigate(href)}
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 6, paddingBottom: 4 }}
+        onClick={handleClick}
+        style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '8px 0' }}
       >
         <Box
+          px={active ? 24 : 0}
+          py={active ? 8 : 4}
           style={{
-            width: 52,
-            height: 32,
+            backgroundColor: active ? 'var(--brand-primary)' : 'transparent',
+            borderRadius: 24,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            borderRadius: 16,
-            marginBottom: 2,
-            backgroundColor: active ? '#2563eb' : 'transparent',
-            color: active ? 'white' : '#64748b',
-            transition: 'all 0.2s',
+            transition: 'all 0.2s ease',
+            color: active ? '#fff' : '#94a3b8'
           }}
         >
-          <Icon size={20} stroke={active ? 2.5 : 2} />
+          <Icon
+            size={24}
+            stroke={active ? 2.5 : 2}
+          />
         </Box>
-        <Text size="10px" fw={active ? 800 : 600} style={{ color: active ? '#2563eb' : '#64748b' }}>
+        <Text
+          size="11px"
+          fw={1000}
+          mt={4}
+          style={{
+            color: active ? 'var(--brand-primary)' : '#94a3b8',
+          }}
+        >
           {label}
         </Text>
       </UnstyledButton>
@@ -142,309 +117,157 @@ export const UserShell = ({ children }: { children: React.ReactNode }) => {
   return (
     <AppShell
       header={{ height: 60 }}
+      footer={{ height: 80 }}
       padding="0"
     >
       <GlobalLoader />
-      <AppShell.Header className="bg-white border-b border-slate-100 z-[1001]">
-        <Container size="lg" h="100%">
-          <Group justify="space-between" h="100%" wrap="nowrap" px="xs">
-            <UnstyledButton onClick={() => navigate('/')} className="flex items-center gap-2">
-              <Image src="/logo-iuh.png" h={30} w="auto" />
-              <Box>
-                <Text fw={900} size="xs" c="blue.8" tt="uppercase" className="leading-tight">Food Court</Text>
-                <Text size="8px" fw={700} c="dimmed" tt="uppercase">IUH University</Text>
-              </Box>
-            </UnstyledButton>
 
-            <Indicator label={totalItems} size={18} color="red" offset={2} disabled={totalItems === 0} withBorder>
-              <ActionIcon variant="filled" color="blue.7" size="lg" radius="md" onClick={open}>
-                <IconShoppingCart size={20} />
+      {/* HEADER */}
+      <AppShell.Header
+        className="bg-white border-b border-slate-100 z-[1001]"
+        style={{ height: 60 }}
+      >
+        <Container size="lg" h="100%">
+          <Group justify="space-between" h="100%" wrap="nowrap" px={8} align="center">
+            <AppTitle />
+
+            <Indicator label={totalItems} size={18} color="brand" offset={5} disabled={totalItems === 0} withBorder>
+              <ActionIcon
+                variant="light"
+                color="brand"
+                size={40}
+                radius="xl"
+                onClick={handleCartClick}
+                className="shadow-sm"
+              >
+                <IconShoppingCart size={20} stroke={2.5} />
               </ActionIcon>
             </Indicator>
           </Group>
         </Container>
       </AppShell.Header>
 
-      <AppShell.Main pb={100} bg="white">
-        {children}
+      <AppShell.Main bg="#f8fafc">
+        <Box pb={80}>
+          <Outlet />
+        </Box>
       </AppShell.Main>
 
-      {/* MATCHED UI FOOTER */}
-      <Box
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-          backgroundColor: 'white',
-          borderTop: '1px solid #eee',
-          paddingBottom: 'env(safe-area-inset-bottom, 10px)',
-          display: 'flex',
-          justifyContent: 'space-around',
-          alignItems: 'center'
-        }}
+      <AppShell.Footer
+        className="bg-white border-t border-slate-100 z-[1000] shadow-[0_-10px_30px_rgba(0,0,0,0.03)]"
+        style={{ height: 80 }}
       >
-        <NavLink href="/" icon={IconSmartHome} label="Trang chủ" />
-        <NavLink href="/menu" icon={IconToolsKitchen2} label="Thực đơn" />
-        <NavLink href="/orders" icon={IconHistory} label="Lịch sử" />
-      </Box>
+        <Container size="lg" h="100%">
+          <Group justify="space-around" h="100%" wrap="nowrap" px="xs" align="center">
+            <NavLink href="/" icon={IconSmartHome} label="Trang chủ" />
+            <NavLink href="/menu" icon={IconToolsKitchen2} label="Thực đơn" />
+            <NavLink href="/orders" icon={IconHistory} label="Lịch sử" />
+          </Group>
+        </Container>
+      </AppShell.Footer>
 
-      {/* PREMIUM CART DRAWER */}
+      {/* CART MODAL (BOTTOM DRAWER) */}
       <Drawer
         opened={opened}
         onClose={close}
-        position="right"
-        size="sm"
+        position="bottom"
+        size="100dvh" // Full screen for mobile
         padding={0}
-        zIndex={1100}
+        radius={0}
         styles={{
           header: { display: 'none' },
-          body: { height: '100%', padding: 0 }
+          content: { height: '100dvh', display: 'flex', flexDirection: 'column' }
         }}
+        overlayProps={{ backgroundOpacity: 0.1, blur: 0 }}
       >
-        <Stack h="100vh" gap={0}>
-          {/* Drawer Header */}
-          <Group justify="space-between" px="md" py="sm" style={{ borderBottom: '1px solid #f1f5f9', flexShrink: 0 }}>
-            <Group gap="xs">
-              <IconShoppingCart size={20} color="#2563eb" />
-              <Text fw={900} size="lg">Giỏ hàng</Text>
-            </Group>
-            <ActionIcon variant="subtle" color="gray" size="lg" radius="xl" onClick={close}>
-              <IconX size={18} />
-            </ActionIcon>
-          </Group>
-
-          {/* Cart Items */}
-          <ScrollArea style={{ flex: 1 }} px="md" py="sm">
-            {cart.length === 0 ? (
-              <Stack align="center" py={80} gap="sm" style={{ opacity: 0.35 }}>
-                <IconShoppingCart size={56} stroke={1} color="#94a3b8" />
-                <Text fw={700} c="dimmed">Giỏ hàng trống</Text>
-                <Text size="xs" c="dimmed">Hãy thêm món ngon vào nhé!</Text>
+        <Box h="100%" display="flex" style={{ flexDirection: 'column' }} bg="#f8fafc">
+          {/* Header với Drag Handle */}
+          <Box bg="white" p="md" style={{ borderBottom: '1px solid #f1f5f9', flexShrink: 0 }}>
+            <Group justify="space-between" align="center">
+              <Stack gap={0}>
+                <Text fw={800} size="lg" style={{ color: '#0f172a' }}>Giỏ hàng của tôi</Text>
+                <Text size="11px" c="dimmed" fw={600}>Kiểm tra lại các món trước khi đặt đơn</Text>
               </Stack>
-            ) : (
-              <Stack gap="xs">
-                {cart.map(item => (
-                  <Paper key={item.id} p="sm" radius="xl" style={{ border: '1px solid #f1f5f9', backgroundColor: '#fff' }}>
-                    <Group wrap="nowrap" gap="sm" align="flex-start">
-                      {/* Product image */}
-                      <Box style={{ width: 64, height: 64, borderRadius: 12, overflow: 'hidden', flexShrink: 0, backgroundColor: '#f8fafc' }}>
-                        <img
-                          src={item.image_url || 'https://via.placeholder.com/64'}
-                          alt={item.product_name}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          onError={(e: any) => { e.target.src = 'https://via.placeholder.com/64'; }}
-                        />
-                      </Box>
+              <ActionIcon variant="light" color="gray" radius="xl" size="lg" onClick={close}>
+                <IconX size={20} />
+              </ActionIcon>
+            </Group>
+          </Box>
 
-                      {/* Info + Controls */}
-                      <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
-                        <Text fw={700} size="sm" lineClamp={2} style={{ lineHeight: 1.3 }}>{item.product_name}</Text>
-                        <Text fw={900} size="sm" c="blue.7">{(item.price * item.quantity).toLocaleString()}đ</Text>
-
-                        <Group justify="space-between" align="center" mt={4}>
-                          {/* Quantity */}
-                          <Group gap={6}>
-                            <ActionIcon
-                              variant="default"
-                              size="sm"
-                              radius="xl"
-                              onClick={() => updateQuantity(item.id, -1)}
-                              style={{ border: '1px solid #e2e8f0' }}
-                            >
-                              <IconMinus size={12} stroke={3} />
-                            </ActionIcon>
-                            <Text size="sm" fw={800} w={18} ta="center">{item.quantity}</Text>
-                            <ActionIcon
-                              variant="filled"
-                              color="blue.7"
-                              size="sm"
-                              radius="xl"
-                              onClick={() => updateQuantity(item.id, 1)}
-                            >
-                              <IconPlus size={12} stroke={3} />
-                            </ActionIcon>
-                          </Group>
-
-                          {/* Delete */}
-                          <ActionIcon
-                            variant="light"
-                            color="red"
-                            size="md"
-                            radius="xl"
-                            onClick={() => removeFromCart(item.id)}
-                          >
-                            <IconTrash size={16} />
-                          </ActionIcon>
-                        </Group>
-                      </Stack>
-                    </Group>
-                  </Paper>
+          <ScrollArea style={{ flex: 1, minHeight: 0 }} bg="white" px={12} py={16}>
+            {isLoading ? (
+              <Stack gap={20} pb={32}>
+                {Array(3).fill(0).map((_, i) => (
+                  <Group key={i} wrap="nowrap" align="flex-start" gap={12}>
+                    <Skeleton width={56} height={56} radius={10} />
+                    <Stack gap={8} style={{ flex: 1 }}>
+                      <Skeleton height={14} width="80%" radius="sm" />
+                      <Skeleton height={12} width="40%" radius="sm" />
+                    </Stack>
+                    <Stack gap={6} align="flex-end">
+                      <Skeleton height={16} width={60} radius="sm" />
+                      <Skeleton height={22} width={80} radius={40} />
+                    </Stack>
+                  </Group>
                 ))}
               </Stack>
+            ) : cartWithDetails.length > 0 ? (
+              <Stack gap={20} pb={32}>
+                {cartWithDetails.map((item) => (
+                  <Group key={item.id} wrap="nowrap" align="flex-start" gap={12}>
+                    <Box w={56} h={56} style={{ borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: '#f8fafc', border: '1px solid #f1f5f9' }}>
+                      <Image src={item.image_url || '/placeholder-food.png'} w={56} h={56} style={{ objectFit: 'cover' }} />
+                    </Box>
+                    <Box style={{ flex: 1, minWidth: 0 }}>
+                      <Text fw={700} size="sm" lineClamp={2} style={{ color: '#1e293b', lineHeight: 1.3 }}>{item.product_name}</Text>
+                      <Text size="10px" c="brand" fw={700} style={{ cursor: 'pointer' }} mt={2}>{item.category_name}</Text>
+                    </Box>
+                    <Stack gap={6} align="flex-end" style={{ flexShrink: 0, minWidth: 0 }}>
+                      <Text fw={700} size="sm" style={{ color: '#0f172a' }}>{formatVND(item.price || 0)}</Text>
+
+                      {/* Pill-shaped Quantity selector */}
+                      <Group gap={0} style={{ border: '1px solid #e2e8f0', borderRadius: 40, overflow: 'hidden', backgroundColor: '#fff' }}>
+                        <ActionIcon variant="subtle" color="gray" size={22} radius={0} onClick={() => item.quantity === 1 ? removeFromCart(item.id) : updateQuantity(item.id, -1)}>
+                          {item.quantity === 1 ? <IconTrash size={10} /> : <IconMinus size={8} />}
+                        </ActionIcon>
+                        <Text size="10px" fw={700} w={18} ta="center">{item.quantity}</Text>
+                        <ActionIcon variant="subtle" color="brand" size={22} radius={0} onClick={() => updateQuantity(item.id, 1)}>
+                          <IconPlus size={8} />
+                        </ActionIcon>
+                      </Group>
+                    </Stack>
+                  </Group>
+                ))}
+              </Stack>
+            ) : (
+              <Center py={100}>
+                <Stack align="center" gap="xl">
+                  <IconShoppingCart size={64} stroke={1} color="#cbd5e1" />
+                  <Text fw={800} c="dimmed">Giỏ hàng đang trống</Text>
+                  <Button variant="light" color="brand" radius="xl" onClick={close}>Quay lại thực đơn</Button>
+                </Stack>
+              </Center>
             )}
           </ScrollArea>
 
-          {/* Order Summary + Checkout */}
           {cart.length > 0 && (
-            <Stack gap={0} style={{ borderTop: '1px solid #f1f5f9', flexShrink: 0, padding: '16px' }}>
-              <Group justify="space-between" mb="xs">
-                <Text size="sm" c="dimmed" fw={600}>{cart.reduce((s, i) => s + i.quantity, 0)} món</Text>
-                <Text fw={900} size="lg" c="blue.8">{totalPrice.toLocaleString()}đ</Text>
+            <Box bg="white" p={12} pb={24} style={{ borderTop: '1px solid #f1f5f9', boxShadow: '0 -4px 16px rgba(0,0,0,0.06)', flexShrink: 0, marginTop: 'auto' }}>
+              <Group justify="space-between" mb={10} align="baseline">
+                <Text fw={700} size="sm" style={{ color: '#64748b' }}>Tạm tính</Text>
+                <Text fw={800} size="md" style={{ color: '#0f172a' }}>{formatVND(totalPrice)}</Text>
               </Group>
               <Button
-                fullWidth
-                size="lg"
-                radius="xl"
-                color="blue.7"
-                fw={900}
-                onClick={openConfirm}
-                style={{ height: 50 }}
+                fullWidth size="sm" radius="xl" color="brand" h={44} fw={700}
+                onClick={handleCheckoutClick}
+                rightSection={<IconChevronRight size={16} />}
+                className="shadow-lg"
               >
-                Đặt hàng ngay
+                Xác nhận đơn hàng
               </Button>
-            </Stack>
+            </Box>
           )}
-        </Stack>
+        </Box>
       </Drawer>
-
-      {/* CONFIRM ORDER MODAL */}
-      <Modal
-        opened={confirmOpened}
-        onClose={closeConfirm}
-        centered
-        radius="lg"
-        padding={0}
-        size="sm"
-        zIndex={1300}
-        withCloseButton={false}
-        overlayProps={{ backgroundOpacity: 0.4, blur: 2 }}
-      >
-        <Stack gap={0}>
-          <Box style={{ background: '#f8fafc', padding: '20px', borderRadius: '12px 12px 0 0', borderBottom: '1px solid #f1f5f9' }}>
-            <Text fw={900} size="lg">Xác nhận đơn hàng</Text>
-            <Text size="xs" c="dimmed" mt={2}>Kiểm tra lại trước khi đặt nhé!</Text>
-          </Box>
-
-          <Stack gap="xs" p={20} style={{ maxHeight: 260, overflowY: 'auto' }}>
-            {cart.map(item => (
-              <Group key={item.id} justify="space-between" wrap="nowrap">
-                <Group gap="xs" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-                  <Box style={{ width: 36, height: 36, borderRadius: 8, overflow: 'hidden', flexShrink: 0, backgroundColor: '#f1f5f9' }}>
-                    <img src={item.image_url} alt={item.product_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e: any) => { e.target.src = 'https://via.placeholder.com/36'; }} />
-                  </Box>
-                  <Stack gap={0} style={{ minWidth: 0 }}>
-                    <Text size="sm" fw={700} lineClamp={1}>{item.product_name}</Text>
-                    <Text size="xs" c="dimmed">x{item.quantity}</Text>
-                  </Stack>
-                </Group>
-                <Text size="sm" fw={800} c="blue.7" style={{ flexShrink: 0 }}>{(item.price * item.quantity).toLocaleString()}đ</Text>
-              </Group>
-            ))}
-          </Stack>
-
-          <Stack gap={6} px={20} pb={4} style={{ borderTop: '1px solid #f1f5f9' }}>
-            <Group justify="space-between" pt={12}>
-              <Text fw={600} c="dimmed" size="sm">Khách hàng</Text>
-              <Text fw={700} size="sm">{customerName}</Text>
-            </Group>
-            
-            <TextInput
-              placeholder="Ghi chú (không cay, nhiều đá,...)"
-              size="sm"
-              radius="md"
-              value={orderNote}
-              onChange={(e) => setOrderNote(e.target.value)}
-              mt="xs"
-              mb="xs"
-            />
-
-            <Group justify="space-between">
-              <Text fw={900} size="md">Tổng cộng</Text>
-              <Text fw={900} size="lg" c="blue.7">{totalPrice.toLocaleString()}đ</Text>
-            </Group>
-          </Stack>
-
-          <Group gap="sm" p={20} style={{ borderTop: '1px solid #f1f5f9' }}>
-            <Button flex={1} variant="default" radius="md" size="md" onClick={closeConfirm}>Hủy</Button>
-            <Button
-              flex={2} radius="md" color="blue.7" size="md" fw={900}
-              loading={mutation.isPending}
-              onClick={() => { handleCheckout(); }}
-            >
-              Xác nhận đặt món
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
-
-      <Modal
-        opened={loginOpened}
-        onClose={closeLogin}
-        withCloseButton={false}
-        closeOnClickOutside={false}
-        closeOnEscape={false}
-        centered
-        radius="lg"
-        padding={0}
-        size="sm"
-        zIndex={1200}
-        overlayProps={{ backgroundOpacity: 0.5, blur: 3 }}
-      >
-        <Stack gap={0}>
-          {/* Blue header */}
-          <Box style={{ background: '#2563eb', padding: '24px 24px 20px', borderRadius: '12px 12px 0 0', textAlign: 'center' }}>
-            <Image src="/logo-iuh.png" h={36} w="auto" mx="auto" mb={12} style={{ filter: 'brightness(0) invert(1)' }} />
-            <Title order={3} fw={900} style={{ color: 'white' }}>Xin chào! 👋</Title>
-            <Text size="xs" style={{ color: 'rgba(255,255,255,0.75)' }} mt={4}>Chào mừng đến với Food Court IUH</Text>
-          </Box>
-
-          {/* Form */}
-          <Stack gap="md" p={24}>
-            <TextInput
-              label={<Text fw={700} size="sm">Họ và tên *</Text>}
-              placeholder="Nguyễn Văn A"
-              radius="md"
-              size="md"
-              value={tempName}
-              onChange={e => setTempName(e.target.value)}
-              leftSection={<IconUser size={16} color="#2563eb" />}
-            />
-            <TextInput
-              label={<Text fw={700} size="sm">Số điện thoại *</Text>}
-              placeholder="0901 234 567"
-              radius="md"
-              size="md"
-              type="tel"
-              value={tempPhone}
-              onChange={e => setTempPhone(e.target.value)}
-              leftSection={<IconPhone size={16} color="#2563eb" />}
-            />
-            <Button
-              fullWidth
-              size="lg"
-              radius="md"
-              color="blue.7"
-              fw={900}
-              mt={4}
-              onClick={() => {
-                if (tempName.trim() && tempPhone.trim()) {
-                  setCustomerName(tempName);
-                  setPhoneNumber(tempPhone);
-                  closeLogin();
-                  notifications.show({ title: 'Xác nhận thành công!', message: `Chào ${tempName}!`, color: 'blue' });
-                } else {
-                  notifications.show({ title: 'Thiếu thông tin', message: 'Vui lòng nhập đầy đủ tên và SĐT.', color: 'red' });
-                }
-              }}
-            >
-              Bắt đầu đặt món
-            </Button>
-          </Stack>
-        </Stack>
-      </Modal>
     </AppShell>
   );
 };
-

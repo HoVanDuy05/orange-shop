@@ -1,45 +1,29 @@
 import {
-  Container,
-  Text,
-  Title,
-  Stack,
-  Group,
-  Button,
-  Badge,
-  Paper,
-  Box,
-  Image,
-  Loader,
-  Center,
-  ThemeIcon,
+  Container, Text, Title, Stack, Group, Button, Badge,
+  Paper, Box, Loader, Center, ThemeIcon, ActionIcon
 } from '@mantine/core';
 import {
-  IconHistory,
-  IconChevronRight
+  IconHistory, IconChevronRight, IconClock,
+  IconCheck, IconX, IconToolsKitchen2, IconTruck, IconReceipt
 } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../store/userStore';
 import { useAppQuery } from '../hooks/useAppQuery';
 import dayjs from 'dayjs';
+import { useBrandTheme } from '../providers/BrandThemeProvider';
 
-const STATUS_COLOR: Record<string, string> = {
-  pending: 'orange',
-  confirmed: 'blue',
-  paid: 'teal',
-  done: 'green',
-  cancelled: 'red',
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  pending: 'Chờ thanh toán',
-  confirmed: 'Đã tiếp nhận',
-  paid: 'Đã thanh toán',
-  done: 'Hoàn thành',
-  cancelled: 'Đã huỷ',
+const STATUS_MAP: Record<string, { color: string; label: string; icon: any }> = {
+  pending: { color: 'orange', label: 'Chờ xác nhận', icon: IconClock },
+  confirmed: { color: 'cyan', label: 'Đã xác nhận', icon: IconCheck },
+  preparing: { color: 'brand', label: 'Đang chuẩn bị', icon: IconToolsKitchen2 },
+  delivering: { color: 'blue', label: 'Đang giao hàng', icon: IconTruck },
+  completed: { color: 'green', label: 'Hoàn thành', icon: IconCheck },
+  cancelled: { color: 'red', label: 'Đã huỷ', icon: IconX },
 };
 
 export default function Orders() {
   const navigate = useNavigate();
+  const { activeTheme } = useBrandTheme();
   const { phoneNumber } = useUserStore();
 
   const { data: orders = [], isLoading } = useAppQuery(
@@ -47,116 +31,80 @@ export default function Orders() {
     `/orders/phone/${phoneNumber}`
   );
 
+  const formatVND = (n: number) => new Intl.NumberFormat('vi-VN').format(n) + 'đ';
+
+  if (isLoading) return (
+    <Center h="70vh">
+      <Loader size="md" color="brand" variant="bars" />
+    </Center>
+  );
+
   return (
-    <Box className="bg-[#f8fafc] min-h-screen pb-100">
-      {/* HEADER SECTION */}
-      <Box className="bg-gradient-to-br from-blue-700 via-indigo-700 to-blue-800 text-white pt-10 pb-20 px-4 relative overflow-hidden">
-        <Box className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -mr-40 -mt-40 blur-[100px]" />
+    <Box bg="#f8fafc" mih="100vh" pb={120} pt={32}>
+      <Container size="sm">
+        <Stack gap="lg">
+          <Group justify="space-between" align="center">
+            <Stack gap={2}>
+              <Badge variant="light" color="brand" size="xs" radius="xl" py={4} px="md">MY ACTIVITY</Badge>
+              <Title order={1} fw={900} size={28} className="tracking-tighter">LỊCH SỬ ĐƠN</Title>
+            </Stack>
+            <ThemeIcon size={44} radius="xl" color="brand" variant="light" className="shadow-sm">
+              <IconHistory size={24} />
+            </ThemeIcon>
+          </Group>
 
-        <Container size="md" className="relative z-10">
-          <Stack gap={0}>
-            <Badge variant="white" color="blue" size="sm" radius="md" fw={900} mb={12} className="w-fit">
-              LỊCH SỬ GIAO DỊCH
-            </Badge>
-            <Title order={1} fw={900} className="text-3xl sm:text-4xl tracking-tighter">
-              Đơn hàng của bạn
-            </Title>
-            <Text size="md" opacity={0.8} fw={600} mt={4}>
-              Quản lý và theo dõi các món ăn đã đặt.
-            </Text>
-          </Stack>
-        </Container>
-      </Box>
-
-      {/* CONTENT SECTION */}
-      <Container size="md" mt={30} pb={100} className="px-4 relative z-20" style={{ maxWidth: 960 }}>
-        <Stack gap="xl">
-          {isLoading ? (
-            <Paper radius="32px" p={100} withBorder className="bg-white/90 backdrop-blur-xl border-white shadow-premium-lg">
-              <Center>
-                <Stack align="center" gap="md">
-                  <Loader variant="dots" size="xl" color="blue" />
-                  <Text fw={700} c="dimmed">Đang tìm đơn hàng của bạn...</Text>
-                </Stack>
-              </Center>
-            </Paper>
-          ) : orders.length === 0 ? (
-            <Paper radius="32px" p={60} bg="white" withBorder className="border-white shadow-premium-lg">
-              <Stack align="center" gap={30}>
-                <Box className="relative">
-                  <ThemeIcon size={140} radius="full" variant="light" color="blue" className="bg-blue-50">
-                    <Image src="https://cdn-icons-png.flaticon.com/512/5086/5086315.png" w={90} opacity={0.5} />
-                  </ThemeIcon>
-                  <Box className="absolute inset-0 animate-pulse bg-blue-400/10 rounded-full" />
-                </Box>
-                <Stack align="center" gap={6}>
-                  <Title order={2} fw={900} size="28px" ta="center">Bạn chưa đặt món nào!</Title>
-                  <Text c="dimmed" fw={600} size="md" ta="center" maw={320}>Cái bụng đang đói cần được nạp năng lượng ngay thôi nè.</Text>
-                </Stack>
-                <Button
-                  size="xl"
-                  radius="xl"
-                  color="blue.7"
-                  px={50}
-                  h={65}
-                  onClick={() => navigate('/menu')}
-                  className="shadow-2xl shadow-blue-500/30 text-lg font-black transition-transform hover:-translate-y-1 active:scale-95"
-                >
-                  Khám phá menu ngay 🍕
+          {!phoneNumber ? (
+            <Paper p={40} radius="32px" withBorder className="text-center bg-white">
+              <Stack align="center" gap="lg">
+                <IconClock size={60} color="#cbd5e1" stroke={1} />
+                <Title order={3} fw={900} size={18}>Bạn chưa đặt món</Title>
+                <Text c="dimmed" fw={600} size="xs">Theo dõi suất ăn hàng ngày của bạn tại đây.</Text>
+                <Button size="md" radius="xl" color="brand" onClick={() => navigate('/menu')} px={32} fw={800}>
+                  Xem món ngay
                 </Button>
               </Stack>
             </Paper>
-          ) : (
-            <Stack gap="md">
-              {[...orders].sort((a: any, b: any) => b.id - a.id).map((order: any) => (
-                <Paper
-                  key={order.id}
-                  radius="24px"
-                  withBorder
-                  p="md"
-                  className="shadow-premium-sm hover:shadow-premium-md transition-all bg-white border-white cursor-pointer group"
-                  onClick={() => navigate(`/order-detail/${order.id}`)}
-                >
-                  <Group justify="space-between" wrap="nowrap" align="center">
-                    <Group gap="md" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-                      <ThemeIcon size={44} radius="xl" variant="light" color={STATUS_COLOR[order.order_status]} className="bg-slate-50">
-                        <IconHistory size={20} />
-                      </ThemeIcon>
-                      <Stack gap={2} style={{ minWidth: 0 }}>
-                        <Group gap={8} wrap="nowrap">
-                          <Text fw={900} size="lg" className="group-hover:text-blue-600 transition-colors leading-none">
-                            IUH-{dayjs(order.created_at).format('DDMMYYYY')}-{order.id}
-                          </Text>
-                          <Badge
-                            color={STATUS_COLOR[order.order_status] || 'gray'}
-                            variant="light"
-                            size="xs"
-                            radius="sm"
-                            fw={800}
-                            style={{ flexShrink: 0 }}
-                          >
-                            {STATUS_LABEL[order.order_status] || order.order_status}
-                          </Badge>
+          ) : orders.length > 0 ? (
+            <Stack gap="xs">
+              {orders.map((order: any) => {
+                const status = STATUS_MAP[order.order_status] || STATUS_MAP.pending;
+                return (
+                  <Paper
+                    key={order.id} p="md" radius="24px" withBorder
+                    className="hover:shadow-lg transition-all border-slate-100 bg-white"
+                    onClick={() => navigate(`/order-detail/${order.id}`)}
+                  >
+                    <Group justify="space-between">
+                      <Stack gap={4}>
+                        <Group gap={6}>
+                          <Text fw={900} size="md" c="dark.8">#{activeTheme?.brand_name?.toUpperCase() || 'ORANGE'}-{order.id}</Text>
+                          <Badge color={status.color} variant="light" radius="sm" size="xs" fw={900}>{status.label}</Badge>
                         </Group>
-                        <Text size="xs" c="dimmed" fw={600} className="truncate">
-                          {dayjs(order.created_at).format('HH:mm')} • {dayjs(order.created_at).format('DD/MM/YYYY')}
-                        </Text>
-                      </Stack>
-                    </Group>
+                        <Text size="10px" c="dimmed" fw={700}>{dayjs(order.created_at).format('HH:mm - DD/MM/YYYY')}</Text>
 
-                    <Stack gap={0} align="flex-end" style={{ flexShrink: 0 }}>
-                      <Text fw={1000} size="xl" className="text-blue-700 leading-none">
-                        {(Number(order.total_amount)).toLocaleString()}đ
-                      </Text>
-                      <Group gap={4} mt={6} className="hidden sm:flex">
-                        <Text size="xs" fw={700} c="dimmed">Chi tiết</Text>
-                        <IconChevronRight size={12} className="text-slate-300" />
-                      </Group>
-                    </Stack>
-                  </Group>
-                </Paper>
-              ))}
+                        <Group gap={6} mt={2}>
+                          <Text size="sm" fw={900} c="brand">{formatVND(Number(order.total_amount))}</Text>
+                          <Text size="10px" c="dimmed">•</Text>
+                          <Text size="10px" c="dimmed" fw={800}>{order.items?.length || 0} món</Text>
+                        </Group>
+                      </Stack>
+
+                      <ActionIcon variant="light" color="gray" radius="xl" size="md">
+                        <IconChevronRight size={16} />
+                      </ActionIcon>
+                    </Group>
+                  </Paper>
+                );
+              })}
             </Stack>
+          ) : (
+            <Paper p={40} radius="32px" withBorder className="text-center shadow-sm bg-white">
+              <Stack align="center" gap="lg">
+                <IconReceipt size={60} color="#cbd5e1" stroke={1} />
+                <Title order={3} size={18} fw={900}>Chưa có đơn hàng nào</Title>
+                <Button variant="light" color="brand" radius="xl" size="md" onClick={() => navigate('/menu')} fw={900}>Chọn món bạn thích nhé!</Button>
+              </Stack>
+            </Paper>
           )}
         </Stack>
       </Container>

@@ -3,10 +3,7 @@ import { persist } from 'zustand/middleware';
 
 export interface CartItem {
   id: number;
-  product_name: string;
-  price: number;
   quantity: number;
-  image_url?: string;
 }
 
 interface UserState {
@@ -36,7 +33,7 @@ export const useUserStore = create<UserState>()(
       lastUpdated: Date.now(),
       addToCart: (item) => set((state) => {
         const existing = state.cart.find((i) => i.id === item.id);
-        const newState = existing 
+        const newState = existing
           ? { cart: state.cart.map((i) => i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i) }
           : { cart: [...state.cart, item] };
         return { ...newState, lastUpdated: Date.now() };
@@ -46,7 +43,7 @@ export const useUserStore = create<UserState>()(
         lastUpdated: Date.now()
       })),
       updateQuantity: (id, delta) => set((state) => ({
-        cart: state.cart.map((i) => 
+        cart: state.cart.map((i) =>
           i.id === id ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i
         ),
         lastUpdated: Date.now()

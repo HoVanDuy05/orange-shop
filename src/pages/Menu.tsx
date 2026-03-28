@@ -1,184 +1,312 @@
-import { useState } from 'react';
 import {
-  Container,
-  SimpleGrid,
-  Card,
-  Badge,
-  Text,
-  Tabs,
-  Title,
-  Loader,
-  Center,
-  Stack,
-  ActionIcon,
-  Box,
-  TextInput,
+  Box, Text, Group,
+  TextInput, ScrollArea, Skeleton, Stack, Container
 } from '@mantine/core';
+import {
+  IconSearch, IconToolsKitchen2
+} from '@tabler/icons-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAppQuery } from '../hooks/useAppQuery';
-import { IconSearch, IconPlus, IconMeat } from '@tabler/icons-react';
-import { useUserStore } from '../store/userStore';
-import { notifications } from '@mantine/notifications';
+import { ProductItem } from '../components/common/ProductItem';
 
 export default function Menu() {
-  const [activeCategory, setActiveCategory] = useState<string | null>('all');
+  const [activeCategory, setActiveCategory] = useState<string>('all');
   const [search, setSearch] = useState('');
-  const { addToCart } = useUserStore();
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  const { data: categories = [] } = useAppQuery('categories', '/categories');
-  const { data: products = [], isLoading: loadingProds } = useAppQuery('products', '/products', {
-    categoryId: activeCategory === 'all' ? undefined : (activeCategory || undefined),
-    search: search || undefined
-  });
+  const scrollAreaRef = useRef(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleAddToCart = (product: any) => {
-    addToCart({
-      id: product.id,
-      product_name: product.product_name,
-      price: Number(product.price),
-      quantity: 1,
-      image_url: product.image_url
-    });
-    notifications.show({
-      title: 'Đã thêm món! 😋',
-      message: `Đã đưa "${product.product_name}" vào giỏ hàng.`,
-      color: 'blue.7',
-      variant: 'light',
-    });
-  };
+  const { data: productsData, isLoading: loadingProds, refetch } = useAppQuery(
+    `products-${activeCategory}-${debouncedSearch}-${page}`,
+    '/products',
+    {
+      categoryId: activeCategory === 'all' ? undefined : (activeCategory || undefined),
+      search: debouncedSearch || undefined,
+      page: page.toString(),
+      limit: '10'
+    }
+  );
+
+  const { data: categoriesData, isLoading: loadingCats } = useAppQuery('categories', '/categories');
+
+  const productList = productsData?.products || [];
+  const pagination = productsData?.pagination;
+  const categoryList = categoriesData?.data || [];
+
+  // Debounce search
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500); // 500ms debounce
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [search]);
+
+  // Reset khi thay đổi category hoặc search
+  useEffect(() => {
+    setPage(1);
+    setAllProducts([]);
+    setHasMore(true);
+  }, [activeCategory, debouncedSearch]);
+
+  // Append new products khi page thay đổi
+  useEffect(() => {
+    if (page === 1) {
+      setAllProducts(productList);
+    } else {
+      setAllProducts(prev => [...prev, ...productList]);
+    }
+
+    // Check if có thêm data
+    if (pagination) {
+      setHasMore(page < pagination.totalPages);
+    }
+  }, [productList, page, pagination]);
+
+  // Infinite scroll handler
+  const handleScroll = useCallback((position: any) => {
+    const { scrollTop, scrollHeight, clientHeight } = position;
+
+    // Load more khi scroll đến 80% từ bottom
+    if (scrollTop + clientHeight >= scrollHeight * 0.8 && hasMore && !isLoadingMore && !loadingProds) {
+      setIsLoadingMore(true);
+      setPage(prev => prev + 1);
+      setTimeout(() => setIsLoadingMore(false), 500);
+    }
+  }, [hasMore, isLoadingMore, loadingProds]);
 
   return (
-    <Box bg="white" mih="100vh" style={{ overflowX: 'hidden' }}>
-      {/* PROFESSIONAL MENU HEADER */}
-      <Box pt={20} pb={10} className="bg-white border-b border-slate-50">
-        <Container size="lg">
-          <Stack gap="md">
-            <Box>
-              <Badge variant="dot" color="blue.7" size="xs" mb={4} fw={700}>THỰC ĐƠN IUH</Badge>
-              <Title order={1} size="22px" fw={900} className="tracking-tight text-slate-800 uppercase">Ăn gì hôm nay? 🍱</Title>
-              <Text c="dimmed" size="xs" fw={500}>Khám phá tinh hoa ẩm thực tại Food Court.</Text>
-            </Box>
+    <Box bg="#f5f5f5" mih="100vh" pb={100}>
+      {/* CATEGORY CIRCLES — GrabFood style */}
+      <Box
+        bg="white"
+        py={12}
+        style={{
+          borderBottom: '1px solid #f1f5f9',
+        }}
+      >
+        <Container size="lg" px="md">
+          <Group justify="space-between" mb={12} px={4}>
+            <Text fw={800} size="13px" style={{ color: '#0f172a' }}>DANH MỤC</Text>
+            <Text size="11px" c="dimmed" fw={600}>Tất cả</Text>
+          </Group>
+          <ScrollArea scrollbars="x" offsetScrollbars>
+            <Group wrap="nowrap" gap={12} px={4}>
+              {loadingCats ? (
+                Array(5).fill(0).map((_, i) => (
+                  <Box key={i} style={{ flexShrink: 0, width: 64, textAlign: 'center' }}>
+                    <Skeleton width={48} height={48} radius="xl" mx="auto" />
+                    <Skeleton height={8} width={30} radius="xl" mx="auto" mt={6} />
+                  </Box>
+                ))
+              ) : (
+                categoryList.map((c: any) => (
+                  <CategoryCircle
+                    key={c.id}
+                    label={c.category_name}
+                    imageUrl={c.image_url}
+                    active={activeCategory === String(c.id)}
+                    onClick={() => setActiveCategory(String(c.id))}
+                  />
+                ))
+              )}
+            </Group>
+          </ScrollArea>
+        </Container>
+      </Box>
 
+      {/* SEARCH BAR */}
+      <Box
+        pt={12}
+        pb={12}
+        px={16}
+        bg="white"
+        style={{
+          borderBottom: '1px solid #f1f5f9',
+          position: 'sticky',
+          top: 60, // Header height
+          zIndex: 100
+        }}
+      >
+        <Box style={{
+          borderRadius: 12,
+          backgroundColor: '#f8fafc',
+          border: '1px solid #e2e8f0'
+        }} px={14} py={8}>
+          <Group gap="xs" wrap="nowrap">
+            <IconSearch size={16} color="#64748b" />
             <TextInput
-              placeholder="Bạn muốn ăn món gì hôm nay?"
-              radius="xl"
-              size="md"
+              placeholder="Tìm kiếm món ăn..."
+              size="sm"
+              variant="unstyled"
+              style={{ flex: 1 }}
               value={search}
-              onChange={(e) => setSearch(e.currentTarget.value)}
-              leftSection={<IconSearch size={18} color="#2563eb" stroke={2.5} />}
+              onChange={(e) => setSearch(e.target.value)}
               styles={{
                 input: {
-                  backgroundColor: '#f8fafc',
-                  border: '2px solid #e2e8f0',
-                  fontWeight: 700,
-                  fontSize: '15px',
-                  borderRadius: 999,
-                  transition: 'all 0.2s',
-                  '&:focus': {
-                    borderColor: '#2563eb',
-                    backgroundColor: 'white',
-                    boxShadow: '0 8px 16px rgba(37,99,235,0.08)'
-                  }
-                },
-                wrapper: { width: '100%', maxWidth: '500px', margin: '0 auto' }
+                  fontSize: 13,
+                  fontWeight: 500,
+                  background: 'transparent',
+                  color: '#475569',
+                  placeholder: { color: '#94a3b8' }
+                }
               }}
             />
-          </Stack>
-        </Container>
+          </Group>
+        </Box>
       </Box>
 
-      {/* COMPACT CATEGORY NAV */}
-      <Box style={{ position: 'sticky', top: 59, zIndex: 50, backgroundColor: 'white', borderBottom: '1px solid #f1f5f9', marginBottom: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-        <Container size="lg">
-          <Tabs
-            value={activeCategory}
-            onChange={setActiveCategory}
-            variant="pills"
-            radius="xl"
-            color="blue.7"
-            styles={{
-              root: { overflowX: 'auto' },
-              list: { gap: 6, flexWrap: 'nowrap', padding: '10px 0' },
-              tab: {
-                fontWeight: 800,
-                fontSize: '12px',
-                whiteSpace: 'nowrap',
-                padding: '6px 16px',
-              }
-            }}
-          >
-            <Tabs.List>
-              <Tabs.Tab value="all">Tất cả</Tabs.Tab>
-              {categories.map((cat: any) => (
-                <Tabs.Tab key={cat.id} value={cat.id.toString()}>
-                  {cat.category_name}
-                </Tabs.Tab>
-              ))}
-            </Tabs.List>
-          </Tabs>
-        </Container>
-      </Box>
+      {/* PRODUCT LIST */}
+      <Box mt={8}>
+        <ScrollArea
+          ref={scrollAreaRef}
+          onScrollPositionChange={handleScroll}
+          h="calc(100vh - 250px)" // Adjust height based on header + category + search
+        >
+          <Container size="full" px={0}>
+            <Stack gap={0} mt={4}>
+              {loadingProds && page === 1 ? (
+                // Initial loading skeleton
+                Array(5).fill(0).map((_, i) => (
+                  <Box key={i} bg="white" px={16} py={14} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <Group gap={14} wrap="nowrap">
+                      <Skeleton width={88} height={88} radius={12} style={{ flexShrink: 0 }} />
+                      <Stack gap={8} style={{ flex: 1 }}>
+                        <Skeleton height={14} width="80%" radius="sm" />
+                        <Skeleton height={12} width="50%" radius="sm" />
+                        <Skeleton height={16} width="30%" radius="sm" />
+                      </Stack>
+                    </Group>
+                  </Box>
+                ))
+              ) : allProducts.length > 0 ? (
+                <>
+                  {allProducts.map((product: any) => (
+                    <ProductItem
+                      key={`${product.id}-${page}`} // Unique key to prevent duplicates
+                      product={product}
+                      variant="list"
+                    />
+                  ))}
 
-      <Container size="lg" pb={140} px="sm">
-        {loadingProds ? (
-          <Center py={100}><Loader color="blue.7" size="md" variant="bars" /></Center>
-        ) : (
-          <SimpleGrid cols={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing="sm">
-            {products.map((product: any) => (
-              <Card
-                key={product.id}
-                padding={0}
-                radius="lg"
-                withBorder
-                style={{ borderColor: '#e2e8f0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
-              >
-                {/* Image with overflow:hidden clipping */}
-                <Box style={{ position: 'relative', width: '100%', paddingBottom: '100%', overflow: 'hidden', backgroundColor: '#f1f5f9', borderRadius: '12px 12px 0 0' }}>
-                  <img
-                    src={product.image_url || 'https://via.placeholder.com/300?text=Food'}
-                    alt={product.product_name}
-                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                    onError={(e: any) => { e.target.src = 'https://via.placeholder.com/300?text=Food'; }}
-                  />
-                  {/* + button absolute top-right of card */}
-                  <ActionIcon
-                    variant="filled"
-                    color="blue.7"
-                    radius="xl"
-                    size={32}
-                    onClick={() => handleAddToCart(product)}
-                    style={{ position: 'absolute', top: 8, right: 8, boxShadow: '0 2px 8px rgba(37,99,235,0.4)' }}
-                  >
-                    <IconPlus size={16} stroke={3} />
-                  </ActionIcon>
-                </Box>
-
-                <Stack gap={3} p={10} style={{ flex: 1 }}>
-                  <Text fw={700} size="13px" lineClamp={2} style={{ lineHeight: 1.3, color: '#1e293b' }}>
-                    {product.product_name}
-                  </Text>
-
-                  {product.description && (
-                    <Text size="10px" c="dimmed" lineClamp={1} fw={500}>
-                      {product.description}
-                    </Text>
+                  {/* Loading more skeleton */}
+                  {isLoadingMore && (
+                    Array(3).fill(0).map((_, i) => (
+                      <Box key={`loading-${i}`} bg="white" px={16} py={14} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <Group gap={14} wrap="nowrap">
+                          <Skeleton width={88} height={88} radius={12} style={{ flexShrink: 0 }} />
+                          <Stack gap={8} style={{ flex: 1 }}>
+                            <Skeleton height={14} width="80%" radius="sm" />
+                            <Skeleton height={12} width="50%" radius="sm" />
+                            <Skeleton height={16} width="30%" radius="sm" />
+                          </Stack>
+                        </Group>
+                      </Box>
+                    ))
                   )}
 
-                  <Text fw={900} size="sm" c="blue.7" mt={2}>
-                    {Number(product.price).toLocaleString()}đ
-                  </Text>
-                </Stack>
-              </Card>
-            ))}
-          </SimpleGrid>
-        )}
+                  {/* End of results */}
+                  {!hasMore && allProducts.length > 0 && (
+                    <Box py={20} ta="center">
+                      <Text size="sm" c="dimmed">Đã hết sản phẩm</Text>
+                    </Box>
+                  )}
+                </>
+              ) : (
+                // No results
+                !loadingProds && (
+                  <Box py={50} ta="center">
+                    <IconToolsKitchen2 size={48} color="#cbd5e1" />
+                    <Text fw={600} c="dimmed" mt={12}>Không tìm thấy sản phẩm nào</Text>
+                    <Text size="sm" c="dimmed" mt={4}>Thử tìm kiếm với từ khóa khác</Text>
+                  </Box>
+                )
+              )}
+            </Stack>
+          </Container>
+        </ScrollArea>
+      </Box>
+    </Box>
+  );
+}
 
-        {!loadingProds && products.length === 0 && (
-          <Center py={100} className="flex-col gap-4 text-center">
-            <IconMeat size={40} className="opacity-10" />
-            <Text c="dimmed" fw={700} size="xs">Chưa tìm thấy món này bạn ơi.</Text>
-          </Center>
+// ── CategoryCircle ─────────────────────────────────────────
+function CategoryCircle({
+  label,
+  imageUrl,
+  active,
+  onClick
+}: {
+  label: string;
+  imageUrl?: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <Box
+      onClick={onClick}
+      style={{
+        flexShrink: 0,
+        width: 64,
+        cursor: 'pointer',
+        textAlign: 'center'
+      }}
+    >
+      {/* Vòng tròn ảnh */}
+      <Box
+        style={{
+          width: 52,
+          height: 52,
+          borderRadius: '50%',
+          margin: '0 auto',
+          border: active ? '2.5px solid var(--brand-primary)' : '2px solid #e2e8f0',
+          overflow: 'hidden',
+          backgroundColor: imageUrl ? 'transparent' : (active ? 'var(--brand-primary)' : '#f1f5f9'),
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 0.2s ease',
+          boxShadow: active ? '0 0 0 3px rgba(var(--brand-primary-rgb), 0.15)' : 'none'
+        }}
+      >
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={label}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        ) : (
+          <Text size="16px" style={{ lineHeight: 1 }}>🍽️</Text>
         )}
-      </Container>
-    </Box >
+      </Box>
+
+      {/* Tên danh mục */}
+      <Text
+        size="10px"
+        fw={active ? 800 : 600}
+        mt={6}
+        lineClamp={2}
+        style={{
+          color: active ? 'var(--brand-primary)' : '#475569',
+          lineHeight: 1.3,
+          wordBreak: 'break-word'
+        }}
+      >
+        {label}
+      </Text>
+    </Box>
   );
 }

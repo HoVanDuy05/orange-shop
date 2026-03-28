@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { MantineProvider, createTheme } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { ModalsProvider } from '@mantine/modals';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -9,42 +8,54 @@ import '@mantine/notifications/styles.css';
 import './index.css';
 
 import { UserShell } from './components/layout/UserShell';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import Auth from './pages/Auth';
 import Home from './pages/Home';
 import Menu from './pages/Menu';
 import OrderDetail from './pages/OrderDetail';
 import Orders from './pages/Orders';
+import Checkout from './pages/Checkout';
+
+import { BrandThemeProvider } from './providers/BrandThemeProvider';
 
 const queryClient = new QueryClient();
-
-const theme = createTheme({
-  fontFamily: 'Be Vietnam Pro, sans-serif',
-  headings: {
-    fontFamily: 'Inter, sans-serif',
-    fontWeight: '800',
-  },
-  primaryColor: 'blue',
-  defaultRadius: 'md',
-});
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <MantineProvider theme={theme} defaultColorScheme="light">
+      <BrandThemeProvider>
         <Notifications position="top-center" zIndex={2000} />
         <ModalsProvider>
           <BrowserRouter>
-            <UserShell>
-              <Routes>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+
+              {/* Layout Route for UserShell */}
+              <Route element={<UserShell />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/menu" element={<Menu />} />
-                <Route path="/orders" element={<Orders />} />
-                <Route path="/order-detail/:id" element={<OrderDetail />} />
-                <Route path="*" element={<Navigate to="/" />} />
-              </Routes>
-            </UserShell>
+                <Route path="/orders" element={
+                  <ProtectedRoute>
+                    <Orders />
+                  </ProtectedRoute>
+                } />
+                <Route path="/order-detail/:id" element={
+                  <ProtectedRoute>
+                    <OrderDetail />
+                  </ProtectedRoute>
+                } />
+              </Route>
+
+              <Route path="/checkout" element={
+                <ProtectedRoute>
+                  <Checkout />
+                </ProtectedRoute>
+              } />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
           </BrowserRouter>
         </ModalsProvider>
-      </MantineProvider>
+      </BrandThemeProvider>
     </QueryClientProvider>
   );
 }
