@@ -1,6 +1,7 @@
 import {
   Container, Text, Group, Stack, Box, Image, ActionIcon,
-  Button as MantineButton, Switch, Radio, Title, ScrollArea, Skeleton
+  Button as MantineButton, Switch, Radio, Title, ScrollArea, Skeleton,
+  TextInput
 } from '@mantine/core';
 import {
   IconChevronLeft, IconPlus, IconMinus, IconTrash, IconInfoCircle, IconQrcode
@@ -19,7 +20,7 @@ const formatVND = (n: number) => new Intl.NumberFormat('vi-VN').format(n) + 'đ'
 export default function Checkout() {
   const navigate = useNavigate();
   const { activeTheme } = useBrandTheme();
-  const { cart, updateQuantity, removeFromCart, clearCart } = useUserStore();
+  const { cart, updateQuantity, removeFromCart, clearCart, customerName, phoneNumber, shippingAddress, setShippingAddress } = useUserStore();
   const { cartWithDetails, isLoading } = useCartProducts();
   const mutation = useAppMutation('/orders');
 
@@ -38,9 +39,9 @@ export default function Checkout() {
     if (paymentMethod === 'cash') {
       try {
         const res = await mutation.mutateAsync({
-          customer_name: 'Khách hàng Mobile',
-          customer_phone: '0123456789',
-          shipping_address: 'Địa chỉ của tôi',
+          customer_name: customerName || 'Khách hàng',
+          customer_phone: phoneNumber || '',
+          shipping_address: shippingAddress || 'Địa chỉ của tôi',
           order_type: 'delivery',
           payment_method: 'cash',
           note: ecoFriendly ? 'Thân thiện môi trường (Không muỗng nĩa nhựa)' : '',
@@ -51,7 +52,7 @@ export default function Checkout() {
         });
         notifications.show({ title: 'Xác nhận thành công!', message: 'Đơn hàng của bạn đã được tiếp nhận.', color: 'green' });
         clearCart();
-        const orderId = res.id || res.data?.id;
+        const orderId: number = res.id || res.data?.id || 0;
         navigate(`/order-detail/${orderId}`);
       } catch (err: any) {
         notifications.show({ title: 'Lỗi', message: err.response?.data?.message || 'Có lỗi khi đặt hàng', color: 'red' });
@@ -64,9 +65,9 @@ export default function Checkout() {
   const handlePaymentSuccess = async () => {
     try {
       const res = await mutation.mutateAsync({
-        customer_name: 'Khách hàng Mobile',
-        customer_phone: '0123456789',
-        shipping_address: 'Địa chỉ của tôi',
+        customer_name: customerName || 'Khách hàng',
+        customer_phone: phoneNumber || '',
+        shipping_address: shippingAddress || 'Địa chỉ của tôi',
         order_type: 'delivery',
         payment_method: 'transfer',
         note: ecoFriendly ? 'Thân thiện môi trường (Không muỗng nĩa nhựa)' : '',
@@ -77,7 +78,7 @@ export default function Checkout() {
       });
       notifications.show({ title: 'Thanh toán thành công!', message: 'Đơn hàng của bạn đã được xác nhận.', color: 'green' });
       clearCart();
-      const orderId = res.id || res.data?.id;
+      const orderId: number = res.id || res.data?.id || 0;
       navigate(`/order-detail/${orderId}`);
     } catch (err: any) {
       notifications.show({ title: 'Lỗi', message: err.response?.data?.message || 'Có lỗi khi đặt hàng', color: 'red' });
@@ -239,6 +240,25 @@ export default function Checkout() {
             </Group>
           </ScrollArea>
         </Container>
+      </Box>
+
+      {/* ── ĐỊA CHỈ GIAO HÀNG ── */}
+      <Box bg="white" mt={12} p={16}>
+        <Text fw={800} size="lg" mb={16} style={{ color: '#0f172a' }}>Địa chỉ giao hàng</Text>
+        <TextInput
+          placeholder="Nhập địa chỉ giao hàng của bạn"
+          value={shippingAddress}
+          onChange={(e) => setShippingAddress(e.target.value)}
+          radius="xl"
+          size="md"
+          styles={{
+            input: {
+              '&:focus': {
+                borderColor: '#f97316',
+              },
+            },
+          }}
+        />
       </Box>
 
       {/* ── PHƯƠNG THỨC THANH TOÁN ── */}

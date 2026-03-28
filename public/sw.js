@@ -1,4 +1,4 @@
-self.addEventListener('push', function(event) {
+self.addEventListener('push', function (event) {
   let data = {};
   if (event.data) {
     try {
@@ -8,11 +8,11 @@ self.addEventListener('push', function(event) {
     }
   }
 
-  const title = data.notification?.title || 'IUH Food Court';
+  const title = data.notification?.title || 'Orange Cafe';
   const options = {
-    body: data.notification?.body || 'Có thông báo mới cho đơn hàng của bạn.',
-    icon: data.notification?.icon || '/logo-iuh.png',
-    badge: data.notification?.badge || '/logo-iuh.png',
+    body: data.notification?.body || 'Bạn có thông báo mới từ Orange Cafe.',
+    icon: data.notification?.icon || '/orange-logo.png',
+    badge: data.notification?.badge || '/orange-logo.png',
     vibrate: data.notification?.vibrate || [200, 100, 200, 100, 200], // Rung 2 nhịp nhấn mạnh
     data: data.notification?.data || { url: '/' },
     requireInteraction: true // Giữ thông báo trên màn hình cho đến khi user bấm vào
@@ -21,7 +21,7 @@ self.addEventListener('push', function(event) {
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
-self.addEventListener('notificationclick', function(event) {
+self.addEventListener('notificationclick', function (event) {
   event.notification.close();
   const urlToOpen = new URL(event.notification.data.url, self.location.origin).href;
 

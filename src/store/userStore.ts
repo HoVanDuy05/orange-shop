@@ -11,6 +11,7 @@ interface UserState {
   tableId: string | null;
   customerName: string;
   phoneNumber: string;
+  shippingAddress: string;
   addToCart: (item: CartItem) => void;
   removeFromCart: (id: number) => void;
   updateQuantity: (id: number, delta: number) => void;
@@ -18,6 +19,7 @@ interface UserState {
   setTableId: (id: string | null) => void;
   setCustomerName: (name: string) => void;
   setPhoneNumber: (phone: string) => void;
+  setShippingAddress: (address: string) => void;
   lastUpdated: number;
 }
 
@@ -30,6 +32,7 @@ export const useUserStore = create<UserState>()(
       tableId: null,
       customerName: '',
       phoneNumber: '',
+      shippingAddress: '',
       lastUpdated: Date.now(),
       addToCart: (item) => set((state) => {
         const existing = state.cart.find((i) => i.id === item.id);
@@ -52,6 +55,7 @@ export const useUserStore = create<UserState>()(
       setTableId: (id) => set({ tableId: id, lastUpdated: Date.now() }),
       setCustomerName: (name) => set({ customerName: name, lastUpdated: Date.now() }),
       setPhoneNumber: (phone) => set({ phoneNumber: phone, lastUpdated: Date.now() }),
+      setShippingAddress: (address) => set({ shippingAddress: address, lastUpdated: Date.now() }),
     }),
     {
       name: 'iuh-user-cart',
@@ -60,6 +64,7 @@ export const useUserStore = create<UserState>()(
           state.clearCart();
           state.setCustomerName('');
           state.setPhoneNumber('');
+          state.setShippingAddress('');
           state.setTableId(null);
         }
       },
