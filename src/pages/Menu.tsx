@@ -21,7 +21,7 @@ export default function Menu() {
   const scrollAreaRef = useRef(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { data: productsData, isLoading: loadingProds, refetch } = useAppQuery(
+  const { data: productsData, isLoading: loadingProds } = useAppQuery(
     `products-${activeCategory}-${debouncedSearch}-${page}`,
     '/products',
     {

@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   AppShell, UnstyledButton, Text, Container, Indicator, ActionIcon,
   Box, Drawer, Stack, Image, ScrollArea, Button,
@@ -22,6 +21,7 @@ export const UserShell = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { activeTheme } = useBrandTheme();
+  console.log('Theme:', activeTheme);
 
   const {
     cart, removeFromCart, updateQuantity, phoneNumber

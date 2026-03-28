@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   Box, Text, Stack, Group, ActionIcon,
-  Button, Textarea,
+  Button,
   Divider
 } from '@mantine/core';
 import { IconMinus, IconPlus, IconX, IconShare } from '@tabler/icons-react';
