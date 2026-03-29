@@ -9,7 +9,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useBrandTheme } from '../providers/BrandThemeProvider';
 import { useAppQuery } from '../hooks/useAppQuery';
-import { useAppMutation } from '../hooks/useAppMutation';
 import { notifications } from '@mantine/notifications';
 import { useUserStore } from '../store/userStore';
 
