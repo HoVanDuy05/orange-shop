@@ -1,7 +1,7 @@
 import {
   Container, Text, Group, Stack, Box, Image, ActionIcon,
   Button as MantineButton, Switch, Radio, Title, ScrollArea, Skeleton,
-  TextInput
+  TextInput, LoadingOverlay
 } from '@mantine/core';
 import {
   IconChevronLeft, IconPlus, IconMinus, IconTrash, IconInfoCircle, IconQrcode
@@ -30,12 +30,16 @@ export default function Checkout() {
   const [ecoFriendly, setEcoFriendly] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer'>('cash');
   const [showPaymentQR, setShowPaymentQR] = useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   const subtotal = cartWithDetails.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0);
   const deliveryFee = 29000;
   const total = subtotal + deliveryFee;
 
   const handlePlaceOrder = async () => {
+    if (isPlacingOrder) return; // Prevent double click
+    setIsPlacingOrder(true);
+
     if (paymentMethod === 'cash') {
       try {
         const res = await mutation.mutateAsync({
@@ -56,9 +60,12 @@ export default function Checkout() {
         navigate(`/order-detail/${orderId}`);
       } catch (err: any) {
         notifications.show({ title: 'Lỗi', message: err.response?.data?.message || 'Có lỗi khi đặt hàng', color: 'red' });
+      } finally {
+        setIsPlacingOrder(false);
       }
     } else {
       setShowPaymentQR(true);
+      setIsPlacingOrder(false);
     }
   };
 
@@ -156,7 +163,23 @@ export default function Checkout() {
   }
 
   return (
-    <Box bg="#f8fafc" mih="100vh" pb={160}>
+    <Box bg="#f8fafc" mih="100vh" pb={200} style={{ position: 'relative' }}>
+      <LoadingOverlay
+        visible={isPlacingOrder}
+        overlayProps={{ radius: 'sm', blur: 2, backgroundOpacity: 0.8 }}
+        loaderProps={{
+          color: 'brand',
+          type: 'dots',
+          size: 'xl'
+        }}
+        zIndex={1000}
+      >
+        <Stack align="center" justify="center" gap="md" style={{ height: '100%' }}>
+          <Text fw={800} size="lg" c="brand">Đang đặt món...</Text>
+          <Text size="sm" c="dimmed">Vui lòng đợi trong giây lát</Text>
+        </Stack>
+      </LoadingOverlay>
+
       {/* ── HEADER ── */}
       <Box bg="white" py={12} px={16} style={{ position: 'sticky', top: 0, zIndex: 100, borderBottom: '1px solid #f1f5f9' }}>
         <Group align="center">
