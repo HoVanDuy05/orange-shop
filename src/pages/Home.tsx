@@ -15,13 +15,11 @@ export default function Home() {
   const navigate = useNavigate();
   const { activeTheme } = useBrandTheme();
 
-  const { data: categories = [], isLoading: loadingCats } = useAppQuery('categories', '/categories');
-  const { data: products = [], isLoading: loadingProds } = useAppQuery('products', '/products');
+  const { data: categoriesData, isLoading: loadingCats } = useAppQuery('categories', '/categories');
+  const { data: productsData, isLoading: loadingProds } = useAppQuery('products', '/products');
 
-  const productList = Array.isArray(products) ? products :
-    products?.data || [];
-  const categoryList = Array.isArray(categories) ? categories :
-    categories?.data || [];
+  const productList = Array.isArray(productsData) ? productsData : (productsData?.products || []);
+  const categoryList = Array.isArray(categoriesData) ? categoriesData : [];
 
   // Lấy 10 sản phẩm mới nhất (theo id giảm dần)
   const latestProducts = [...productList]
