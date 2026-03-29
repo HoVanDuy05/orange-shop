@@ -14,19 +14,13 @@ type CartItemWithDetails = CartItem & Partial<Product>;
 export const useCartProducts = () => {
   const { cart } = useUserStore();
 
-  // Get all product IDs from cart
-  const productIds = cart.map(item => item.id).join(',');
-
-  // Fetch products by IDs
+  // Fetch all products một lần, cache lâu dài
   const { data: productsData, isLoading } = useAppQuery(
-    `cart-products-${productIds}`,
-    '/products',
-    {
-      ids: productIds || undefined
-    }
+    'all-products-cart',
+    '/products'
   );
 
-  const products = productsData?.products || [];
+  const products = Array.isArray(productsData) ? productsData : (productsData?.products || []);
 
   // Merge cart with product details
   const cartWithDetails: CartItemWithDetails[] = cart.map(cartItem => {
