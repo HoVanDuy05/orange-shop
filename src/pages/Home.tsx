@@ -18,8 +18,10 @@ export default function Home() {
   const { data: categories = [], isLoading: loadingCats } = useAppQuery('categories', '/categories');
   const { data: products = [], isLoading: loadingProds } = useAppQuery('products', '/products');
 
-  const productList = Array.isArray(products) ? products : [];
-  const categoryList = Array.isArray(categories) ? categories : [];
+  const productList = Array.isArray(products) ? products :
+    products?.data || [];
+  const categoryList = Array.isArray(categories) ? categories :
+    categories?.data || [];
 
   // Lấy 10 sản phẩm mới nhất (theo id giảm dần)
   const latestProducts = [...productList]
