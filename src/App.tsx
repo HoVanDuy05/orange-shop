@@ -12,6 +12,7 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import Auth from './pages/Auth';
 import Home from './pages/Home';
 import Menu from './pages/Menu';
+import CategoryPage from './pages/CategoryPage';
 import OrderDetail from './pages/OrderDetail';
 import Orders from './pages/Orders';
 import Checkout from './pages/Checkout';
@@ -34,6 +35,7 @@ function App() {
               <Route element={<UserShell />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/menu" element={<Menu />} />
+                <Route path="/category/:id" element={<CategoryPage />} />
                 <Route path="/orders" element={
                   <ProtectedRoute>
                     <Orders />

@@ -6,8 +6,90 @@ import {
   IconSearch, IconToolsKitchen2
 } from '@tabler/icons-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppQuery } from '../hooks/useAppQuery';
 import { ProductItem } from '../components/common/ProductItem';
+
+interface CategoryCircleProps {
+  imageUrl?: string;
+  label: string;
+  active: boolean;
+  categoryId: string;
+  onClick?: () => void;
+}
+
+function CategoryCircle({
+  imageUrl,
+  label,
+  active,
+  categoryId,
+  onClick
+}: CategoryCircleProps) {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (categoryId !== 'all') {
+      navigate(`/category/${categoryId}`);
+    } else if (onClick) {
+      onClick();
+    }
+  };
+
+  return (
+    <Box
+      onClick={handleClick}
+      style={{
+        flexShrink: 0,
+        width: 64,
+        cursor: 'pointer',
+        textAlign: 'center'
+      }}
+    >
+      {/* Vòng tròn ảnh */}
+      <Box
+        style={{
+          width: 52,
+          height: 52,
+          borderRadius: '50%',
+          margin: '0 auto',
+          border: active ? '2.5px solid var(--brand-primary)' : '2px solid #e2e8f0',
+          overflow: 'hidden',
+          backgroundColor: imageUrl ? 'transparent' : (active ? 'var(--brand-primary)' : '#f1f5f9'),
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 0.2s ease',
+          boxShadow: active ? '0 0 0 3px rgba(var(--brand-primary-rgb), 0.15)' : 'none'
+        }}
+      >
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={label}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        ) : (
+          <Text size="16px" style={{ lineHeight: 1 }}>🍽️</Text>
+        )}
+      </Box>
+
+      {/* Tên danh mục */}
+      <Text
+        size="10px"
+        fw={active ? 800 : 600}
+        mt={6}
+        lineClamp={2}
+        style={{
+          color: active ? 'var(--brand-primary)' : '#475569',
+          lineHeight: 1.3,
+          wordBreak: 'break-word'
+        }}
+      >
+        {label}
+      </Text>
+    </Box>
+  );
+}
 
 export default function Menu() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -116,6 +198,7 @@ export default function Menu() {
                 categoryList.map((c: any) => (
                   <CategoryCircle
                     key={c.id}
+                    categoryId={String(c.id)}
                     label={c.category_name}
                     imageUrl={c.image_url}
                     active={activeCategory === String(c.id)}
@@ -239,74 +322,6 @@ export default function Menu() {
           </Container>
         </ScrollArea>
       </Box>
-    </Box>
-  );
-}
-
-// ── CategoryCircle ─────────────────────────────────────────
-function CategoryCircle({
-  label,
-  imageUrl,
-  active,
-  onClick
-}: {
-  label: string;
-  imageUrl?: string;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <Box
-      onClick={onClick}
-      style={{
-        flexShrink: 0,
-        width: 64,
-        cursor: 'pointer',
-        textAlign: 'center'
-      }}
-    >
-      {/* Vòng tròn ảnh */}
-      <Box
-        style={{
-          width: 52,
-          height: 52,
-          borderRadius: '50%',
-          margin: '0 auto',
-          border: active ? '2.5px solid var(--brand-primary)' : '2px solid #e2e8f0',
-          overflow: 'hidden',
-          backgroundColor: imageUrl ? 'transparent' : (active ? 'var(--brand-primary)' : '#f1f5f9'),
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'all 0.2s ease',
-          boxShadow: active ? '0 0 0 3px rgba(var(--brand-primary-rgb), 0.15)' : 'none'
-        }}
-      >
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={label}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-          />
-        ) : (
-          <Text size="16px" style={{ lineHeight: 1 }}>🍽️</Text>
-        )}
-      </Box>
-
-      {/* Tên danh mục */}
-      <Text
-        size="10px"
-        fw={active ? 800 : 600}
-        mt={6}
-        lineClamp={2}
-        style={{
-          color: active ? 'var(--brand-primary)' : '#475569',
-          lineHeight: 1.3,
-          wordBreak: 'break-word'
-        }}
-      >
-        {label}
-      </Text>
     </Box>
   );
 }
