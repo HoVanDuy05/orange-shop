@@ -6,8 +6,8 @@ export const useAppQuery = (key: string, url: string, params?: any) => {
     queryKey: [key, params],
     queryFn: async () => {
       const { data } = await api.get(url, { params });
-      // Return full data object for pagination support
-      return data;
+      // Return actual data object (unwrap from {success, data} response)
+      return data.data || data;
     },
   });
 };

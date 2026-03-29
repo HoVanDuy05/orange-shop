@@ -1,23 +1,24 @@
 import {
   Container, Text, Title, Stack, Group, Button,
-  ThemeIcon, Timeline, Paper, Box, Badge, Loader, Image, Center, Divider
+  ThemeIcon, Timeline, Paper, Box, Badge, Loader, Image, Center, Divider, Grid
 } from '@mantine/core';
 import {
   IconClock, IconCircleX, IconArrowLeft, IconToolsKitchen2,
-  IconCheck, IconTruck, IconMapPin, IconPhone, IconUser, IconReceipt
+  IconCheck, IconTruck, IconMapPin, IconPhone, IconUser, IconReceipt,
+  IconPackage, IconChefHat, IconBike, IconStar
 } from '@tabler/icons-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppQuery } from '../hooks/useAppQuery';
 import dayjs from 'dayjs';
 import { useBrandTheme } from '../providers/BrandThemeProvider';
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
-  pending: { label: 'Chờ xác nhận', color: 'orange', icon: IconClock },
-  confirmed: { label: 'Đã xác nhận', color: 'cyan', icon: IconCheck },
-  preparing: { label: 'Đang chuẩn bị', color: 'brand', icon: IconToolsKitchen2 },
-  delivering: { label: 'Đang giao hàng', color: 'blue', icon: IconTruck },
-  completed: { label: 'Đã hoàn thành', color: 'green', icon: IconCheck },
-  cancelled: { label: 'Đã hủy', color: 'red', icon: IconCircleX },
+const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any; bg: string }> = {
+  pending: { label: 'Chờ xác nhận', color: '#f97316', icon: IconClock, bg: '#fff7ed' },
+  confirmed: { label: 'Đã xác nhận', color: '#06b6d4', icon: IconCheck, bg: '#ecfeff' },
+  preparing: { label: 'Đang chuẩn bị', color: '#8b5cf6', icon: IconChefHat, bg: '#f5f3ff' },
+  delivering: { label: 'Đang giao', color: '#3b82f6', icon: IconBike, bg: '#eff6ff' },
+  completed: { label: 'Hoàn thành', color: '#22c55e', icon: IconStar, bg: '#f0fdf4' },
+  cancelled: { label: 'Đã hủy', color: '#ef4444', icon: IconCircleX, bg: '#fef2f2' },
 };
 
 const STATUS_FLOW = ['pending', 'confirmed', 'preparing', 'delivering', 'completed'];
@@ -38,28 +39,30 @@ export default function OrderDetail() {
   const { data: order, isLoading } = useAppQuery(`order-${id}`, `/orders/${id}`);
 
   if (isLoading) return (
-    <Box mih="100vh" bg="#F8FAFC">
+    <Box mih="100vh" bg="#fafafa">
       <Center h="100vh">
-        <Stack align="center" gap="md">
-          <Loader size="md" color="brand" variant="bars" />
-          <Text fw={900} size="xs" c="dimmed">Dữ liệu đơn hàng...</Text>
+        <Stack align="center" gap="lg">
+          <Loader size="lg" color="orange" />
+          <Text fw={600} size="sm" c="dimmed">Đang tải thông tin đơn hàng...</Text>
         </Stack>
       </Center>
     </Box>
   );
 
   if (!order) return (
-    <Center mih="100vh" bg="#F8FAFC" p="xl">
-      <Paper radius="32px" p={40} withBorder bg="white" className="text-center shadow-xl border-slate-100 max-w-sm">
+    <Center mih="100vh" bg="#fafafa" p="xl">
+      <Paper radius="24px" p={32} withBorder bg="white" style={{ maxWidth: 400, textAlign: 'center' }}>
         <Stack align="center" gap="lg">
-          <ThemeIcon size={64} radius="xl" color="red" variant="light">
-            <IconCircleX size={32} />
+          <ThemeIcon size={80} radius="xl" color="red" variant="light">
+            <IconCircleX size={40} />
           </ThemeIcon>
-          <Stack gap={2}>
-            <Title order={3} fw={900} size={18}>Đơn hàng không tồn tại</Title>
-            <Text c="dimmed" fw={600} size="xs">Mã đơn #{id} không đúng.</Text>
+          <Stack gap={4}>
+            <Title order={3} fw={700} size="lg">Đơn hàng không tồn tại</Title>
+            <Text c="dimmed" size="sm">Không tìm thấy đơn hàng #{id}</Text>
           </Stack>
-          <Button fullWidth size="md" radius="xl" color="brand" onClick={() => navigate('/')} fw={800}>Về trang chủ</Button>
+          <Button fullWidth size="md" radius="xl" color="orange" onClick={() => navigate('/')} fw={600}>
+            Về trang chủ
+          </Button>
         </Stack>
       </Paper>
     </Center>
@@ -67,6 +70,7 @@ export default function OrderDetail() {
 
   const activeIndex = STATUS_FLOW.indexOf(order.order_status);
   const currentStatus = STATUS_CONFIG[order.order_status] || STATUS_CONFIG.pending;
+  const orderCode = order.order_code || `ORDER-${String(order.id).padStart(4, '0')}`;
 
   return (
     <Box bg="#F8FAFC" mih="100vh" pb={120}>
@@ -127,35 +131,35 @@ export default function OrderDetail() {
                 </Timeline>
               </Box>
 
-                <Stack gap={8}>
-                  <Text fw={900} size="9px" c="dimmed" tt="uppercase" lts="1px">GIỎ HÀNG CHI TIẾT</Text>
-                  <Stack gap={4}>
-                    {order.items?.map((item: OrderItem, idx: number) => (
-                      <Paper key={idx} p="xs" radius="xl" withBorder bg="white" className="border-slate-50 shadow-sm">
-                        <Group justify="space-between" wrap="nowrap">
-                          <Group gap="sm" wrap="nowrap">
-                            <Box 
-                              style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #f1f5f9' }}
-                            >
-                              <Image 
-                                src={item.image_url || '/placeholder-food.png'} 
-                                w={42} h={42} fit="cover"
-                              />
-                            </Box>
-                            <Stack gap={0}>
-                              <Text fw={800} size="xs" lineClamp={1} className="tracking-tight">{item.product_name}</Text>
-                              <Group gap={4}>
-                                <Badge variant="light" color="brand" size="sm" radius="sm" px={4} h={18}>{item.quantity}x</Badge>
-                                <Text size="10px" fw={900} c="brand">{(Number(item.unit_price)).toLocaleString()}đ</Text>
-                              </Group>
-                            </Stack>
-                          </Group>
-                          <Text fw={1000} size="sm" className="tracking-tighter">{(item.unit_price * item.quantity).toLocaleString()}đ</Text>
+              <Stack gap={8}>
+                <Text fw={900} size="9px" c="dimmed" tt="uppercase" lts="1px">GIỎ HÀNG CHI TIẾT</Text>
+                <Stack gap={4}>
+                  {order.items?.map((item: OrderItem, idx: number) => (
+                    <Paper key={idx} p="xs" radius="xl" withBorder bg="white" className="border-slate-50 shadow-sm">
+                      <Group justify="space-between" wrap="nowrap">
+                        <Group gap="sm" wrap="nowrap">
+                          <Box
+                            style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #f1f5f9' }}
+                          >
+                            <Image
+                              src={item.image_url || '/placeholder-food.png'}
+                              w={42} h={42} fit="cover"
+                            />
+                          </Box>
+                          <Stack gap={0}>
+                            <Text fw={800} size="xs" lineClamp={1} className="tracking-tight">{item.product_name}</Text>
+                            <Group gap={4}>
+                              <Badge variant="light" color="brand" size="sm" radius="sm" px={4} h={18}>{item.quantity}x</Badge>
+                              <Text size="10px" fw={900} c="brand">{(Number(item.unit_price)).toLocaleString()}đ</Text>
+                            </Group>
+                          </Stack>
                         </Group>
-                      </Paper>
-                    ))}
-                  </Stack>
+                        <Text fw={1000} size="sm" className="tracking-tighter">{(item.unit_price * item.quantity).toLocaleString()}đ</Text>
+                      </Group>
+                    </Paper>
+                  ))}
                 </Stack>
+              </Stack>
 
               <Paper radius="24px" p="md" style={{ background: 'linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%)' }}>
                 <Group justify="space-between">
