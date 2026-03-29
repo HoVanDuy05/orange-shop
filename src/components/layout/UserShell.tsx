@@ -171,22 +171,32 @@ export const UserShell = () => {
         opened={opened}
         onClose={close}
         position="bottom"
-        size="100dvh"
+        size="85vh"
         padding={0}
-        radius={0}
+        radius="lg"
         styles={{
           header: { display: 'none' },
-          content: { height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }
+          content: {
+            height: '85vh',
+            display: 'flex',
+            flexDirection: 'column'
+          },
+          body: {
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            padding: 0
+          }
         }}
-        overlayProps={{ backgroundOpacity: 0.1, blur: 0 }}
+        overlayProps={{ backgroundOpacity: 0.5, blur: 3 }}
       >
-        <Box h="100%" display="flex" style={{ flexDirection: 'column', overflow: 'hidden' }} bg="#f8fafc">
-          {/* Header - Sticky top */}
-          <Box bg="white" p="md" style={{ borderBottom: '1px solid #f1f5f9', flexShrink: 0 }}>
+        <Box style={{ height: '100%', display: 'flex', flexDirection: 'column' }} bg="#f8fafc">
+          {/* Header - Cố định top */}
+          <Box bg="white" p="md" pt="lg" style={{ borderBottom: '1px solid #f1f5f9', flexShrink: 0 }}>
             <Group justify="space-between" align="center">
-              <Stack gap={0}>
+              <Stack gap={2}>
                 <Text fw={800} size="lg" style={{ color: '#0f172a' }}>Giỏ hàng của tôi</Text>
-                <Text size="11px" c="dimmed" fw={600}>Kiểm tra lại các món trước khi đặt đơn</Text>
+                <Text size="11px" c="dimmed" fw={600}>{totalItems} món • {formatVND(totalPrice)}</Text>
               </Stack>
               <ActionIcon variant="light" color="gray" radius="xl" size="lg" onClick={close}>
                 <IconX size={20} />
@@ -194,10 +204,10 @@ export const UserShell = () => {
             </Group>
           </Box>
 
-          {/* Content - Scrollable */}
+          {/* Content - Scrollable chiếm phần còn lại */}
           <ScrollArea style={{ flex: 1, minHeight: 0 }} bg="white" px={12} py={16}>
             {isLoading ? (
-              <Stack gap={20} pb={32}>
+              <Stack gap={20}>
                 {Array(3).fill(0).map((_, i) => (
                   <Group key={i} wrap="nowrap" align="flex-start" gap={12}>
                     <Skeleton width={56} height={56} radius={10} />
@@ -213,7 +223,7 @@ export const UserShell = () => {
                 ))}
               </Stack>
             ) : cartWithDetails.length > 0 ? (
-              <Stack gap={20} pb={32}>
+              <Stack gap={20}>
                 {cartWithDetails.map((item) => (
                   <Group key={item.id} wrap="nowrap" align="flex-start" gap={12}>
                     <Box w={56} h={56} style={{ borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: '#f8fafc', border: '1px solid #f1f5f9' }}>
@@ -241,7 +251,7 @@ export const UserShell = () => {
                 ))}
               </Stack>
             ) : (
-              <Center py={100}>
+              <Center py={60}>
                 <Stack align="center" gap="xl">
                   <IconShoppingCart size={64} stroke={1} color="#cbd5e1" />
                   <Text fw={800} c="dimmed">Giỏ hàng đang trống</Text>
@@ -251,17 +261,17 @@ export const UserShell = () => {
             )}
           </ScrollArea>
 
-          {/* Footer - Sticky bottom */}
+          {/* Footer - Luôn hiển thị bottom */}
           {cart.length > 0 && (
-            <Box bg="white" p={12} pb={24} style={{ borderTop: '1px solid #f1f5f9', boxShadow: '0 -4px 16px rgba(0,0,0,0.06)', flexShrink: 0 }}>
-              <Group justify="space-between" mb={10} align="baseline">
+            <Box bg="white" p={16} pb={24} style={{ borderTop: '1px solid #f1f5f9', boxShadow: '0 -4px 16px rgba(0,0,0,0.06)', flexShrink: 0 }}>
+              <Group justify="space-between" mb={12} align="baseline">
                 <Text fw={700} size="sm" style={{ color: '#64748b' }}>Tạm tính</Text>
-                <Text fw={800} size="md" style={{ color: '#0f172a' }}>{formatVND(totalPrice)}</Text>
+                <Text fw={800} size="lg" style={{ color: '#0f172a' }}>{formatVND(totalPrice)}</Text>
               </Group>
               <Button
-                fullWidth size="sm" radius="xl" color="brand" h={44} fw={700}
+                fullWidth size="md" radius="xl" color="brand" h={48} fw={700}
                 onClick={handleCheckoutClick}
-                rightSection={<IconChevronRight size={16} />}
+                rightSection={<IconChevronRight size={18} />}
                 className="shadow-lg"
               >
                 Xác nhận đơn hàng
