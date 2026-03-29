@@ -36,7 +36,7 @@ export default function Menu() {
 
   const productList = productsData?.products || [];
   const pagination = productsData?.pagination;
-  const categoryList = categoriesData?.data || [];
+  const categoryList = Array.isArray(categoriesData) ? categoriesData : [];
 
   // Debounce search
   useEffect(() => {
