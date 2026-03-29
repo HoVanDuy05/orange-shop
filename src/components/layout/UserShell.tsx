@@ -171,17 +171,17 @@ export const UserShell = () => {
         opened={opened}
         onClose={close}
         position="bottom"
-        size="100dvh" // Full screen for mobile
+        size="100dvh"
         padding={0}
         radius={0}
         styles={{
           header: { display: 'none' },
-          content: { height: '100dvh', display: 'flex', flexDirection: 'column' }
+          content: { height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }
         }}
         overlayProps={{ backgroundOpacity: 0.1, blur: 0 }}
       >
-        <Box h="100%" display="flex" style={{ flexDirection: 'column' }} bg="#f8fafc">
-          {/* Header với Drag Handle */}
+        <Box h="100%" display="flex" style={{ flexDirection: 'column', overflow: 'hidden' }} bg="#f8fafc">
+          {/* Header - Sticky top */}
           <Box bg="white" p="md" style={{ borderBottom: '1px solid #f1f5f9', flexShrink: 0 }}>
             <Group justify="space-between" align="center">
               <Stack gap={0}>
@@ -194,6 +194,7 @@ export const UserShell = () => {
             </Group>
           </Box>
 
+          {/* Content - Scrollable */}
           <ScrollArea style={{ flex: 1, minHeight: 0 }} bg="white" px={12} py={16}>
             {isLoading ? (
               <Stack gap={20} pb={32}>
@@ -250,8 +251,9 @@ export const UserShell = () => {
             )}
           </ScrollArea>
 
+          {/* Footer - Sticky bottom */}
           {cart.length > 0 && (
-            <Box bg="white" p={12} pb={24} style={{ borderTop: '1px solid #f1f5f9', boxShadow: '0 -4px 16px rgba(0,0,0,0.06)', flexShrink: 0, marginTop: 'auto' }}>
+            <Box bg="white" p={12} pb={24} style={{ borderTop: '1px solid #f1f5f9', boxShadow: '0 -4px 16px rgba(0,0,0,0.06)', flexShrink: 0 }}>
               <Group justify="space-between" mb={10} align="baseline">
                 <Text fw={700} size="sm" style={{ color: '#64748b' }}>Tạm tính</Text>
                 <Text fw={800} size="md" style={{ color: '#0f172a' }}>{formatVND(totalPrice)}</Text>
