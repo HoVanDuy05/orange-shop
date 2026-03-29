@@ -1,15 +1,18 @@
 import {
   Container, Text, Group,
   Title, Stack, Box, Skeleton, ScrollArea,
-  SimpleGrid
+  SimpleGrid, Paper, Badge, ActionIcon
 } from '@mantine/core';
 import {
-  IconArrowRight
+  IconArrowRight, IconClock, IconDiscount, IconTrendingUp, IconMapPin, IconStar,
+  IconFireExtinguisher
 } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppQuery } from '../hooks/useAppQuery';
 import { useBrandTheme } from '../providers/BrandThemeProvider';
 import { ProductItem } from '../components/common/ProductItem';
+
+const formatVND = (n: number) => new Intl.NumberFormat('vi-VN').format(n) + 'đ';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -144,6 +147,173 @@ export default function Home() {
           )}
         </Box>
       </Container>
+
+      {/* ── PROMO BANNER ── */}
+      <Box bg="white" py={20} px="md">
+        <Container size="lg">
+          <Paper
+            p={16}
+            radius="xl"
+            style={{
+              background: 'linear-gradient(135deg, #f97316 0%, #fb923c 100%)',
+              color: 'white'
+            }}
+          >
+            <Group justify="space-between" align="center">
+              <Stack gap={4}>
+                <Group gap="xs">
+                  <IconDiscount size={20} />
+                  <Text fw={800} size="lg">Ưu đãi đặc biệt</Text>
+                </Group>
+                <Text size="sm" opacity={0.9}>Giảm 20% cho đơn hàng đầu tiên</Text>
+              </Stack>
+              <Badge size="lg" color="white" c="orange" fw={700} radius="md">
+                ORANGE20
+              </Badge>
+            </Group>
+          </Paper>
+        </Container>
+      </Box>
+
+      {/* ── FLASH SALE ── */}
+      <Box bg="white" py={16}>
+        <Container size="lg" px="md">
+          <Group justify="space-between" mb={12}>
+            <Group gap="xs">
+              <IconFireExtinguisher size={20} color="#ef4444" />
+              <Text fw={800} size="14px" style={{ color: '#0f172a' }}>Flash Sale</Text>
+              <Badge color="red" size="sm" radius="sm">
+                <Group gap={4}>
+                  <IconClock size={10} />
+                  <Text size="xs" fw={700}>02:34:15</Text>
+                </Group>
+              </Badge>
+            </Group>
+            <Text size="11px" c="dimmed" style={{ cursor: 'pointer' }}>Xem tất cả</Text>
+          </Group>
+
+          <ScrollArea scrollbars="x" offsetScrollbars>
+            <Group wrap="nowrap" gap={12}>
+              {loadingProds ? (
+                Array(4).fill(0).map((_, i) => (
+                  <Skeleton key={i} w={140} h={180} radius="md" />
+                ))
+              ) : (
+                latestProducts.slice(0, 5).map((p: any) => (
+                  <Paper key={p.id} w={140} p={12} radius="lg" style={{ flexShrink: 0, border: '1px solid #f1f5f9' }}>
+                    <Box w={116} h={100} style={{ borderRadius: 12, overflow: 'hidden', background: '#f8fafc' }}>
+                      <img src={p.image_url || '/placeholder-food.png'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </Box>
+                    <Text fw={700} size="xs" mt={8} lineClamp={1}>{p.product_name}</Text>
+                    <Group gap={4} mt={4}>
+                      <Text fw={800} size="sm" c="brand">{formatVND(p.price || 0)}</Text>
+                      <Text size="xs" c="dimmed" td="line-through">{formatVND((p.price || 0) * 1.2)}</Text>
+                    </Group>
+                  </Paper>
+                ))
+              )}
+            </Group>
+          </ScrollArea>
+        </Container>
+      </Box>
+
+      {/* ── NEARBY POPULAR ── */}
+      <Box bg="white" py={16} mt={12}>
+        <Container size="lg" px="md">
+          <Group gap="xs" mb={12}>
+            <IconMapPin size={18} color="#f97316" />
+            <Text fw={800} size="14px" style={{ color: '#0f172a' }}>Phổ biến gần bạn</Text>
+          </Group>
+
+          <ScrollArea scrollbars="x" offsetScrollbars>
+            <Group wrap="nowrap" gap={12}>
+              {loadingProds ? (
+                Array(5).fill(0).map((_, i) => (
+                  <Skeleton key={i} w={200} h={120} radius="xl" />
+                ))
+              ) : (
+                categoryList.slice(0, 4).map((c: any) => (
+                  <Paper
+                    key={c.id}
+                    w={200}
+                    h={120}
+                    p={16}
+                    radius="xl"
+                    style={{
+                      flexShrink: 0,
+                      background: `linear-gradient(135deg, ${c.color || '#f97316'} 0%, ${c.color || '#fb923c'}55 100%),
+                                  linear-gradient(135deg, #ffedd5 0%, #fff7ed 100%)`,
+                      position: 'relative',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => navigate('/menu')}
+                  >
+                    <Stack gap={4} style={{ position: 'relative', zIndex: 1 }}>
+                      <Text fw={800} size="md" c="white">{c.category_name}</Text>
+                      <Group gap={4}>
+                        <IconStar size={12} color="white" fill="white" />
+                        <Text size="xs" c="white" fw={600}>4.{Math.floor(Math.random() * 5) + 5}</Text>
+                      </Group>
+                      <Text size="xs" c="white" opacity={0.9}>{Math.floor(Math.random() * 20) + 5} phút</Text>
+                    </Stack>
+                    {c.image_url && (
+                      <img
+                        src={c.image_url}
+                        style={{
+                          position: 'absolute',
+                          right: -10,
+                          bottom: -10,
+                          width: 80,
+                          height: 80,
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          opacity: 0.9
+                        }}
+                      />
+                    )}
+                  </Paper>
+                ))
+              )}
+            </Group>
+          </ScrollArea>
+        </Container>
+      </Box>
+
+      {/* ── TRENDING ── */}
+      <Box bg="white" py={16} mt={12} mb={80}>
+        <Container size="lg" px="md">
+          <Group gap="xs" mb={12}>
+            <IconTrendingUp size={18} color="#f97316" />
+            <Text fw={800} size="14px" style={{ color: '#0f172a' }}>Đang được quan tâm</Text>
+          </Group>
+
+          <SimpleGrid cols={1} spacing="xs">
+            {loadingProds ? (
+              Array(3).fill(0).map((_, i) => (
+                <Skeleton key={i} h={60} radius="lg" />
+              ))
+            ) : (
+              latestProducts.slice(0, 3).map((p: any, idx: number) => (
+                <Paper
+                  key={p.id}
+                  p={12}
+                  radius="lg"
+                  style={{ border: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: 12 }}
+                >
+                  <Box w={36} h={36} style={{ borderRadius: 10, background: `linear-gradient(135deg, #f97316${20 + idx * 10} 0%, #fb923c${20 + idx * 10} 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text fw={900} size="md" c="white">{idx + 1}</Text>
+                  </Box>
+                  <Box style={{ flex: 1 }}>
+                    <Text fw={700} size="sm">{p.product_name}</Text>
+                    <Text size="xs" c="dimmed">{Math.floor(Math.random() * 500) + 100} đã đặt tuần này</Text>
+                  </Box>
+                  <IconArrowRight size={16} color="#94a3b8" />
+                </Paper>
+              ))
+            )}
+          </SimpleGrid>
+        </Container>
+      </Box>
     </Box>
   );
 }
