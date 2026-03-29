@@ -27,7 +27,7 @@ export default function CategoryPage() {
       {/* Header */}
       <Box bg="white" style={{ position: 'sticky', top: 0, zIndex: 100, borderBottom: '1px solid #f0f0f0' }}>
         <Container size="sm" py={16}>
-          <Group>
+          <Group gap="sm">
             <ActionIcon
               variant="subtle"
               color="gray"
@@ -37,9 +37,24 @@ export default function CategoryPage() {
             >
               <IconArrowLeft size={24} />
             </ActionIcon>
-            <Title order={3} size="h5" fw={600}>
-              {category?.category_name || 'Danh mục'}
-            </Title>
+            {category?.image_url && (
+              <img
+                src={category.image_url}
+                alt={category.category_name}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  objectFit: 'cover'
+                }}
+              />
+            )}
+            <Stack gap={0}>
+              <Text size="xs" c="dimmed" fw={500}>Danh mục</Text>
+              <Title order={3} size="h6" fw={700} style={{ lineHeight: 1.2 }}>
+                {category?.category_name || 'Danh mục'}
+              </Title>
+            </Stack>
           </Group>
         </Container>
       </Box>

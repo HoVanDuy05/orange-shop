@@ -42,11 +42,6 @@ export default function Home() {
 
   const todayProducts = getTodayProducts();
 
-  // Best sellers cho section khác (nếu cần)
-  const bestSellers = [...productList]
-    .sort((a: any, b: any) => (b.sales_count || 0) - (a.sales_count || 0))
-    .slice(0, 6);
-
   return (
     <Box bg="#f8fafc" pb={100}>
       {/* ── HERO SECTION ── */}
