@@ -1,7 +1,7 @@
 import {
   Container, Text, Group,
   Title, Stack, Box, Skeleton, ScrollArea,
-  SimpleGrid, Paper, Badge, ActionIcon
+  SimpleGrid, Paper, Badge
 } from '@mantine/core';
 import {
   IconArrowRight, IconClock, IconDiscount, IconTrendingUp, IconMapPin, IconStar,
@@ -155,7 +155,7 @@ export default function Home() {
             p={16}
             radius="xl"
             style={{
-              background: 'linear-gradient(135deg, #f97316 0%, #fb923c 100%)',
+              background: `linear-gradient(135deg, ${activeTheme?.primary_color || '#ff6b00'} 0%, ${activeTheme?.secondary_color || '#ffffff'}55 100%)`,
               color: 'white'
             }}
           >
@@ -167,7 +167,7 @@ export default function Home() {
                 </Group>
                 <Text size="sm" opacity={0.9}>Giảm 20% cho đơn hàng đầu tiên</Text>
               </Stack>
-              <Badge size="lg" color="white" c="orange" fw={700} radius="md">
+              <Badge size="lg" color="white" c={activeTheme?.primary_color || 'orange'} fw={700} radius="md">
                 ORANGE20
               </Badge>
             </Group>
@@ -180,16 +180,16 @@ export default function Home() {
         <Container size="lg" px="md">
           <Group justify="space-between" mb={12}>
             <Group gap="xs">
-              <IconFireExtinguisher size={20} color="#ef4444" />
+              <IconFireExtinguisher size={20} color={activeTheme?.primary_color || '#ff6b00'} />
               <Text fw={800} size="14px" style={{ color: '#0f172a' }}>Flash Sale</Text>
-              <Badge color="red" size="sm" radius="sm">
+              <Badge color="orange" size="sm" radius="sm">
                 <Group gap={4}>
                   <IconClock size={10} />
                   <Text size="xs" fw={700}>02:34:15</Text>
                 </Group>
               </Badge>
             </Group>
-            <Text size="11px" c="dimmed" style={{ cursor: 'pointer' }}>Xem tất cả</Text>
+            <Text size="11px" c="brand" style={{ cursor: 'pointer' }}>Xem tất cả</Text>
           </Group>
 
           <ScrollArea scrollbars="x" offsetScrollbars>
@@ -221,7 +221,7 @@ export default function Home() {
       <Box bg="white" py={16} mt={12}>
         <Container size="lg" px="md">
           <Group gap="xs" mb={12}>
-            <IconMapPin size={18} color="#f97316" />
+            <IconMapPin size={18} color={activeTheme?.primary_color || '#ff6b00'} />
             <Text fw={800} size="14px" style={{ color: '#0f172a' }}>Phổ biến gần bạn</Text>
           </Group>
 
@@ -241,7 +241,7 @@ export default function Home() {
                     radius="xl"
                     style={{
                       flexShrink: 0,
-                      background: `linear-gradient(135deg, ${c.color || '#f97316'} 0%, ${c.color || '#fb923c'}55 100%),
+                      background: `linear-gradient(135deg, ${c.color || activeTheme?.primary_color || '#f97316'} 0%, ${c.color || activeTheme?.secondary_color || '#fb923c'}55 100%),
                                   linear-gradient(135deg, #ffedd5 0%, #fff7ed 100%)`,
                       position: 'relative',
                       cursor: 'pointer'
@@ -283,7 +283,7 @@ export default function Home() {
       <Box bg="white" py={16} mt={12} mb={80}>
         <Container size="lg" px="md">
           <Group gap="xs" mb={12}>
-            <IconTrendingUp size={18} color="#f97316" />
+            <IconTrendingUp size={18} color={activeTheme?.primary_color || '#ff6b00'} />
             <Text fw={800} size="14px" style={{ color: '#0f172a' }}>Đang được quan tâm</Text>
           </Group>
 
