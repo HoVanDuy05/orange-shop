@@ -5,7 +5,7 @@ import {
   Skeleton
 } from '@mantine/core';
 import {
-  IconShoppingCart, IconSmartHome, IconToolsKitchen2, IconHistory,
+  IconShoppingCart, IconSmartHome, IconToolsKitchen2, IconHistory, IconUser,
   IconTrash, IconPlus, IconMinus, IconX, IconChevronRight
 } from '@tabler/icons-react';
 import { useUserStore } from '../../store/userStore';
@@ -161,7 +161,8 @@ export const UserShell = () => {
           <Group justify="space-around" h="100%" wrap="nowrap" px="xs" align="center">
             <NavLink href="/" icon={IconSmartHome} label="Trang chủ" />
             <NavLink href="/menu" icon={IconToolsKitchen2} label="Thực đơn" />
-            <NavLink href="/orders" icon={IconHistory} label="Lịch sử" />
+            <NavLink href="/orders" icon={IconHistory} label="Đơn hàng" />
+            <NavLink href="/profile" icon={IconUser} label="Tài khoản" />
           </Group>
         </Container>
       </AppShell.Footer>
