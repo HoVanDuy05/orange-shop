@@ -1,6 +1,7 @@
 import {
   Box, Text, Group,
-  TextInput, Skeleton, Stack, Container
+  TextInput, Skeleton, Stack, Container,
+  ScrollArea
 } from '@mantine/core';
 import {
   IconSearch, IconToolsKitchen2
