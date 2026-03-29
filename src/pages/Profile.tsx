@@ -28,7 +28,6 @@ export default function Profile() {
 
   // Fetch profile từ API
   const { data: profileData } = useAppQuery('profile', '/auth/client/profile');
-  const updateProfileMutation = useAppMutation('/auth/client/profile', 'put', 'profile');
 
   // Merge data từ API và local store
   const userProfile = profileData?.user || profileData || {};
