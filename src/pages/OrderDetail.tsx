@@ -3,9 +3,8 @@ import {
   ThemeIcon, Timeline, Paper, Box, Badge, Loader, Image, Center, Divider, Grid
 } from '@mantine/core';
 import {
-  IconClock, IconCircleX, IconArrowLeft, IconToolsKitchen2,
-  IconCheck, IconTruck, IconMapPin, IconPhone, IconUser, IconReceipt,
-  IconPackage, IconChefHat, IconBike, IconStar
+  IconClock, IconCircleX, IconArrowLeft, IconMapPin, IconPhone, IconUser,
+  IconChefHat, IconBike, IconStar
 } from '@tabler/icons-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppQuery } from '../hooks/useAppQuery';
@@ -14,7 +13,7 @@ import { useBrandTheme } from '../providers/BrandThemeProvider';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any; bg: string }> = {
   pending: { label: 'Chờ xác nhận', color: '#f97316', icon: IconClock, bg: '#fff7ed' },
-  confirmed: { label: 'Đã xác nhận', color: '#06b6d4', icon: IconCheck, bg: '#ecfeff' },
+  confirmed: { label: 'Đã xác nhận', color: '#06b6d4', icon: IconClock, bg: '#ecfeff' },
   preparing: { label: 'Đang chuẩn bị', color: '#8b5cf6', icon: IconChefHat, bg: '#f5f3ff' },
   delivering: { label: 'Đang giao', color: '#3b82f6', icon: IconBike, bg: '#eff6ff' },
   completed: { label: 'Hoàn thành', color: '#22c55e', icon: IconStar, bg: '#f0fdf4' },
@@ -34,7 +33,6 @@ interface OrderItem {
 export default function OrderDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { activeTheme } = useBrandTheme();
 
   const { data: order, isLoading } = useAppQuery(`order-${id}`, `/orders/${id}`);
 
