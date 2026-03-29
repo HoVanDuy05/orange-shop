@@ -9,7 +9,6 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppQuery } from '../hooks/useAppQuery';
 import dayjs from 'dayjs';
-import { useBrandTheme } from '../providers/BrandThemeProvider';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any; bg: string }> = {
   pending: { label: 'Chờ xác nhận', color: '#f97316', icon: IconClock, bg: '#fff7ed' },
