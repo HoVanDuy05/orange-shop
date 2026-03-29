@@ -21,6 +21,28 @@ export default function Home() {
   const productList = Array.isArray(products) ? products : [];
   const categoryList = Array.isArray(categories) ? categories : [];
 
+  // Random 5 sản phẩm hoặc lấy 5 sản phẩm mới nhất
+  const getTodayProducts = () => {
+    if (productList.length === 0) return [];
+
+    // 50% random, 50% mới nhất
+    const useRandom = Math.random() > 0.5;
+
+    if (useRandom) {
+      // Random 5 sản phẩm
+      const shuffled = [...productList].sort(() => Math.random() - 0.5);
+      return shuffled.slice(0, 5);
+    } else {
+      // 5 sản phẩm mới nhất (theo id giảm dần)
+      return [...productList]
+        .sort((a: any, b: any) => (b.id || 0) - (a.id || 0))
+        .slice(0, 5);
+    }
+  };
+
+  const todayProducts = getTodayProducts();
+
+  // Best sellers cho section khác (nếu cần)
   const bestSellers = [...productList]
     .sort((a: any, b: any) => (b.sales_count || 0) - (a.sales_count || 0))
     .slice(0, 6);
@@ -132,7 +154,7 @@ export default function Home() {
             </SimpleGrid>
           ) : (
             <SimpleGrid cols={{ base: 2, sm: 2, lg: 2 }} spacing="12px">
-              {bestSellers.map((product: any) => (
+              {todayProducts.map((product: any) => (
                 <ProductItem
                   key={product.id}
                   product={product}

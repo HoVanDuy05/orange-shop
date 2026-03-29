@@ -1,6 +1,6 @@
 import {
   Box, Text, Group,
-  TextInput, ScrollArea, Skeleton, Stack, Container
+  TextInput, Skeleton, Stack, Container
 } from '@mantine/core';
 import {
   IconSearch, IconToolsKitchen2
@@ -96,7 +96,6 @@ export default function Menu() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
-  const scrollAreaRef = useRef(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: productsData, isLoading: loadingProds } = useAppQuery(
@@ -213,46 +212,41 @@ export default function Menu() {
       </Box>
 
       {/* PRODUCT LIST */}
-      <Box mt={8}>
-        <ScrollArea
-          ref={scrollAreaRef}
-          h="calc(100vh - 250px)"
-        >
-          <Container size="full" px={0}>
-            <Stack gap={0} mt={4}>
-              {loadingProds ? (
-                Array(5).fill(0).map((_, i) => (
-                  <Box key={i} bg="white" px={16} py={14} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <Group gap={14} wrap="nowrap">
-                      <Skeleton width={88} height={88} radius={12} style={{ flexShrink: 0 }} />
-                      <Stack gap={8} style={{ flex: 1 }}>
-                        <Skeleton height={14} width="80%" radius="sm" />
-                        <Skeleton height={12} width="50%" radius="sm" />
-                        <Skeleton height={16} width="30%" radius="sm" />
-                      </Stack>
-                    </Group>
-                  </Box>
-                ))
-              ) : allProducts.length > 0 ? (
-                allProducts.map((product: any) => (
-                  <ProductItem
-                    key={product.id}
-                    product={product}
-                    variant="list"
-                  />
-                ))
-              ) : (
-                !loadingProds && (
-                  <Box py={50} ta="center">
-                    <IconToolsKitchen2 size={48} color="#cbd5e1" />
-                    <Text fw={600} c="dimmed" mt={12}>Không tìm thấy sản phẩm nào</Text>
-                    <Text size="sm" c="dimmed" mt={4}>Thử tìm kiếm với từ khóa khác</Text>
-                  </Box>
-                )
-              )}
-            </Stack>
-          </Container>
-        </ScrollArea>
+      <Box mt={8} pb={100}>
+        <Container size="full" px={0}>
+          <Stack gap={0} mt={4}>
+            {loadingProds ? (
+              Array(5).fill(0).map((_, i) => (
+                <Box key={i} bg="white" px={16} py={14} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <Group gap={14} wrap="nowrap">
+                    <Skeleton width={88} height={88} radius={12} style={{ flexShrink: 0 }} />
+                    <Stack gap={8} style={{ flex: 1 }}>
+                      <Skeleton height={14} width="80%" radius="sm" />
+                      <Skeleton height={12} width="50%" radius="sm" />
+                      <Skeleton height={16} width="30%" radius="sm" />
+                    </Stack>
+                  </Group>
+                </Box>
+              ))
+            ) : allProducts.length > 0 ? (
+              allProducts.map((product: any) => (
+                <ProductItem
+                  key={product.id}
+                  product={product}
+                  variant="list"
+                />
+              ))
+            ) : (
+              !loadingProds && (
+                <Box py={50} ta="center">
+                  <IconToolsKitchen2 size={48} color="#cbd5e1" />
+                  <Text fw={600} c="dimmed" mt={12}>Không tìm thấy sản phẩm nào</Text>
+                  <Text size="sm" c="dimmed" mt={4}>Thử tìm kiếm với từ khóa khác</Text>
+                </Box>
+              )
+            )}
+          </Stack>
+        </Container>
       </Box>
     </Box>
   );
