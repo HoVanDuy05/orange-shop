@@ -95,7 +95,7 @@ export default function CategoryPage() {
             <Group gap="md" align="flex-start">
               {products.map((product: any) => (
                 <Box key={product.id} style={{ flex: '1 1 calc(50% - 8px)', minWidth: 0 }}>
-                  <ProductItem product={product} />
+                  <ProductItem product={product} variant="grid" />
                 </Box>
               ))}
             </Group>
