@@ -1,20 +1,36 @@
 import { useEffect, useState } from 'react';
-import { Box, Image, Text, Stack, Transition, Loader, Center, Group } from '@mantine/core';
+import { Box, Text, Stack, Transition, Loader, Center, Group } from '@mantine/core';
+import { IconToolsKitchen2, IconCoffee, IconGlassFull } from '@tabler/icons-react';
 
 /**
- * Global Loader for IUH Food Court
- * Premium design with entry/exit animations and IUH branding
+ * Global Loader for Orange Cafe
+ * Premium design with entry/exit animations
  */
 export const GlobalLoader = () => {
   const [mounted, setMounted] = useState(true);
+  const [iconIndex, setIconIndex] = useState(0);
 
+  // Rotating food icons animation
   useEffect(() => {
-    // Elegant fade out after initialization
+    const iconTimer = setInterval(() => {
+      setIconIndex((prev) => (prev + 1) % 3);
+    }, 400);
+
     const timer = setTimeout(() => {
       setMounted(false);
     }, 1800);
-    return () => clearTimeout(timer);
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(iconTimer);
+    };
   }, []);
+
+  const icons = [
+    <IconToolsKitchen2 size={48} color="#f97316" stroke={1.5} key="kitchen" />,
+    <IconCoffee size={48} color="#f97316" stroke={1.5} key="coffee" />,
+    <IconGlassFull size={48} color="#f97316" stroke={1.5} key="drink" />
+  ];
 
   return (
     <Transition mounted={mounted} transition="fade" duration={600} timingFunction="ease">
@@ -28,58 +44,61 @@ export const GlobalLoader = () => {
             backgroundColor: 'white',
           }}
         >
-          <Stack align="center" gap={30}>
-            {/* Logo Container with Slide + Scale Animation */}
-            <Transition 
-              mounted={mounted} 
-              transition="slide-up" 
-              duration={800} 
-              timingFunction="cubic-bezier(0.34, 1.56, 0.64, 1)"
+          <Stack align="center" gap={24}>
+            {/* Animated Food Icon */}
+            <Transition
+              mounted={mounted}
+              transition="pop"
+              duration={400}
+              timingFunction="ease"
             >
               {(logoStyles) => (
-                <Box style={{ ...logoStyles, position: 'relative' }}>
-                  <Image 
-                    src="/logo-iuh.png" 
-                    mah={60} 
-                    w="auto" 
-                    fit="contain"
-                    style={{ 
-                      filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.08))',
-                    }} 
-                  />
-                  {/* Subtle shine effect */}
-                  <Box 
-                    style={{ position: 'absolute', left: 0, right: 0, bottom: -32, display: 'flex', justifyContent: 'center' }}
+                <Box
+                  style={{
+                    ...logoStyles,
+                    position: 'relative',
+                    animation: 'bounce 0.6s ease infinite alternate'
+                  }}
+                >
+                  <Box
+                    style={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 10px 40px rgba(249, 115, 22, 0.15)'
+                    }}
                   >
-                    <Box h={4} w={60} style={{ backgroundColor: '#2563eb', borderRadius: 2, opacity: 0.6 }} />
+                    {icons[iconIndex]}
                   </Box>
                 </Box>
               )}
             </Transition>
 
             {/* Content Container */}
-            <Stack gap={10} align="center">
-              <Text 
-                fw={900} 
-                size="20px" 
-                c="blue.8" 
-                tt="uppercase" 
-                className="tracking-tight"
-                style={{ opacity: 0.9, letterSpacing: '1.5px' }}
+            <Stack gap={8} align="center">
+              <Text
+                fw={900}
+                size="22px"
+                c="orange.8"
+                style={{ opacity: 0.9, letterSpacing: '1px' }}
               >
-                IUH Food Court
+                Orange Cafe
               </Text>
-              
+
               <Group gap="xs" align="center">
-                <Loader color="blue" type="dots" size="xs" />
-                <Text 
-                  size="xs" 
-                  fw={700} 
-                  c="dimmed" 
+                <Loader color="orange" type="dots" size="sm" />
+                <Text
+                  size="xs"
+                  fw={600}
+                  c="dimmed"
                   tt="uppercase"
-                  style={{ opacity: 0.6, letterSpacing: '2px' }}
+                  style={{ opacity: 0.6, letterSpacing: '1px' }}
                 >
-                  ĐANG KHỞI TẠO HỆ THỐNG
+                  Đang khởi tạo
                 </Text>
               </Group>
             </Stack>

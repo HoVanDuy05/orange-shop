@@ -21,26 +21,10 @@ export default function Home() {
   const productList = Array.isArray(products) ? products : [];
   const categoryList = Array.isArray(categories) ? categories : [];
 
-  // Random 5 sản phẩm hoặc lấy 5 sản phẩm mới nhất
-  const getTodayProducts = () => {
-    if (productList.length === 0) return [];
-
-    // 50% random, 50% mới nhất
-    const useRandom = Math.random() > 0.5;
-
-    if (useRandom) {
-      // Random 5 sản phẩm
-      const shuffled = [...productList].sort(() => Math.random() - 0.5);
-      return shuffled.slice(0, 5);
-    } else {
-      // 5 sản phẩm mới nhất (theo id giảm dần)
-      return [...productList]
-        .sort((a: any, b: any) => (b.id || 0) - (a.id || 0))
-        .slice(0, 5);
-    }
-  };
-
-  const todayProducts = getTodayProducts();
+  // Lấy 10 sản phẩm mới nhất (theo id giảm dần)
+  const latestProducts = [...productList]
+    .sort((a: any, b: any) => (b.id || 0) - (a.id || 0))
+    .slice(0, 10);
 
   return (
     <Box bg="#f8fafc" pb={100}>
@@ -149,7 +133,7 @@ export default function Home() {
             </SimpleGrid>
           ) : (
             <SimpleGrid cols={{ base: 2, sm: 2, lg: 2 }} spacing="12px">
-              {todayProducts.map((product: any) => (
+              {latestProducts.map((product: any) => (
                 <ProductItem
                   key={product.id}
                   product={product}
